@@ -10,9 +10,12 @@ import (
 	"syscall"
 )
 
+type gfsVolumeInfo struct {
+	options  map[string]string
+}
 type gfsDriver struct {
 	// Maps the name to a set of options.
-	volumeMap    map[string]map[string]string
+	volumeMap    map[string]gfsVolumeInfo
 	volumes      []string
 	create       int
 	get          int
@@ -51,7 +54,8 @@ func (p *gfsDriver) Create(req *volume.CreateRequest) error {
 	for k, v := range req.Options {
 		newOptions[k] = v
 	}
-	newOptions["volumeNameHash"] = MountPointFilename(req.Name)
+	newOptions["MountPoint"] = MountPointFilename(req.Name)
+	newOptions["Mounted"] = "{ \"mounted\": 0 }"
 	p.create++
 	p.volumeMap[req.Name] = newOptions
 	p.volumes = append(p.volumes, req.Name)
@@ -70,8 +74,14 @@ func (p *gfsDriver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
 
 func (p *gfsDriver) List() (*volume.ListResponse, error) {
 	var vols []*volume.Volume
-	for k, _ := range p.volumeMap {
-		vols = append(vols, &volume.Volume{Name: k})
+	for k, v := range p.volumeMap {
+		status := make(map[string]interface{})
+		status["mounted"] = 1
+		vols = append(vols, &volume.Volume{
+			Name: k,
+Mountpoint: v["MountPoint"],
+Status: status,
+		})
 	}
 	return &volume.ListResponse{Volumes: vols}, nil
 }

@@ -5,14 +5,18 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
-	"github.com/docker/go-plugins-helpers/volume"
 	"sync"
 	"syscall"
+
+	"github.com/docker/go-plugins-helpers/volume"
 )
 
 type gfsVolumeInfo struct {
-	options  map[string]string
+	options    map[string]string
+	mountPoint string
+	status     map[string]interface{}
 }
+
 type gfsDriver struct {
 	// Maps the name to a set of options.
 	volumeMap    map[string]gfsVolumeInfo
@@ -28,36 +32,37 @@ type gfsDriver struct {
 	m            *sync.Mutex
 }
 
-// Builds the mountpoint file name based on the volume name.  The mount name
-// is an 86 character string (intented to be this long to prevent it from
-// working in Windows).  The string is a base64uri encoded version of the
-// SHA-512 hash of the volume name
+// MountPointFilename Builds the mountpoint file name based on the volume
+// name.  The mount name is an 86 character string (intented to be this
+// long to prevent it from working in Windows).  The string is a base64uri
+// encoded version of the SHA-512 hash of the volume name
 func MountPointFilename(volumeName string) string {
 	hash := sha512.Sum512([]byte(volumeName))
 	return base64.RawURLEncoding.EncodeToString(hash[:])
 }
 
-func (d *gfsDriver) Capabilities() *volume.CapabilitiesResponse {
+func (p *gfsDriver) Capabilities() *volume.CapabilitiesResponse {
 	return &volume.CapabilitiesResponse{Capabilities: volume.Capability{Scope: "global"}}
 }
 
-// Attemps to create the volume, if it has been created already it will
+// Attempts to create the volume, if it has been created already it will
 // return an error if it is already present.
 func (p *gfsDriver) Create(req *volume.CreateRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
-	if p.volumeMap[req.Name] != nil {
+	_, volumeExists := p.volumeMap[req.Name]
+	if volumeExists {
 		return fmt.Errorf("volume %s already exists", req.Name)
 	}
-	newOptions := make(map[string]string)
-	for k, v := range req.Options {
-		newOptions[k] = v
-	}
-	newOptions["MountPoint"] = MountPointFilename(req.Name)
-	newOptions["Mounted"] = "{ \"mounted\": 0 }"
 	p.create++
-	p.volumeMap[req.Name] = newOptions
+	status := make(map[string]interface{})
+	status["mounted"] = false
+	p.volumeMap[req.Name] = gfsVolumeInfo{
+		options:    req.Options,
+		mountPoint: MountPointFilename(req.Name),
+		status:     status,
+	}
 	p.volumes = append(p.volumes, req.Name)
 	return nil
 }
@@ -78,9 +83,9 @@ func (p *gfsDriver) List() (*volume.ListResponse, error) {
 		status := make(map[string]interface{})
 		status["mounted"] = 1
 		vols = append(vols, &volume.Volume{
-			Name: k,
-Mountpoint: v["MountPoint"],
-Status: status,
+			Name:       k,
+			Mountpoint: v.mountPoint,
+			Status:     v.status,
 		})
 	}
 	return &volume.ListResponse{Volumes: vols}, nil
@@ -90,7 +95,8 @@ func (p *gfsDriver) Remove(req *volume.RemoveRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
-	if p.volumeMap[req.Name] != nil {
+	_, volumeExists := p.volumeMap[req.Name]
+	if !volumeExists {
 		return fmt.Errorf("volume %s does not exist", req.Name)
 	}
 
@@ -133,7 +139,7 @@ func (p *gfsDriver) Unmount(req *volume.UnmountRequest) error {
 
 func buildGfsDriver() *gfsDriver {
 	d := &gfsDriver{
-		volumeMap: make(map[string]map[string]string),
+		volumeMap: make(map[string]gfsVolumeInfo),
 		m:         &sync.Mutex{},
 	}
 	return d

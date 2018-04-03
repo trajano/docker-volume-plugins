@@ -1,0 +1,21 @@
+{
+    "description": "GlusterFS plugin for Docker",
+	"documentation": "https://github.com/trajano/docker-volume-gfs/",
+	"entrypoint": ["/docker-volume-gfs"],
+	"network": {
+        "type": "host"
+    },
+    "devices": [
+        {
+            "path": "/dev/fuse"
+        }
+    ],
+    "propagatedMount": "/var/lib/docker/volumes",
+	"interface" : {
+        "types": ["docker.volumedriver/1.0"],
+        "socket": "gfs.sock"
+	},
+	"linux": {
+		"capabilities": ["CAP_SYS_ADMIN"]
+	}
+}

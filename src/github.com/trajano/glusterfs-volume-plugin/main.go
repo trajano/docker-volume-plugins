@@ -1,16 +1,18 @@
 package main
 
 import (
-	"flag"
+	"crypto/sha512"
 	"encoding/base64"
+	"flag"
 	"fmt"
 	"github.com/docker/go-plugins-helpers/volume"
 	"sync"
 	"syscall"
-	"crypto/sha512"
 )
 
 type gfsDriver struct {
+	// Maps the name to a set of options.
+	volumeMap    map[string]map[string]string
 	volumes      []string
 	create       int
 	get          int
@@ -36,8 +38,22 @@ func (d *gfsDriver) Capabilities() *volume.CapabilitiesResponse {
 	return &volume.CapabilitiesResponse{Capabilities: volume.Capability{Scope: "global"}}
 }
 
+// Attemps to create the volume, if it has been created already it will
+// return an error if it is already present.
 func (p *gfsDriver) Create(req *volume.CreateRequest) error {
+	p.m.Lock()
+	defer p.m.Unlock()
+
+	if p.volumeMap[req.Name] != nil {
+		return fmt.Errorf("volume %s already exists", req.Name)
+	}
+	newOptions := make(map[string]string)
+	for k, v := range req.Options {
+		newOptions[k] = v
+	}
+	newOptions["volumeNameHash"] = MountPointFilename(req.Name)
 	p.create++
+	p.volumeMap[req.Name] = newOptions
 	p.volumes = append(p.volumes, req.Name)
 	return nil
 }
@@ -53,23 +69,23 @@ func (p *gfsDriver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
 }
 
 func (p *gfsDriver) List() (*volume.ListResponse, error) {
-	p.list++
 	var vols []*volume.Volume
-	for _, v := range p.volumes {
-		vols = append(vols, &volume.Volume{Name: v})
+	for k, _ := range p.volumeMap {
+		vols = append(vols, &volume.Volume{Name: k})
 	}
 	return &volume.ListResponse{Volumes: vols}, nil
 }
 
 func (p *gfsDriver) Remove(req *volume.RemoveRequest) error {
-	p.remove++
-	for i, v := range p.volumes {
-		if v == req.Name {
-			p.volumes = append(p.volumes[:i], p.volumes[i+1:]...)
-			return nil
-		}
+	p.m.Lock()
+	defer p.m.Unlock()
+
+	if p.volumeMap[req.Name] != nil {
+		return fmt.Errorf("volume %s does not exist", req.Name)
 	}
-	return fmt.Errorf("no such volume")
+
+	delete(p.volumeMap, req.Name)
+	return nil
 }
 
 func (p *gfsDriver) Path(req *volume.PathRequest) (*volume.PathResponse, error) {
@@ -107,7 +123,8 @@ func (p *gfsDriver) Unmount(req *volume.UnmountRequest) error {
 
 func buildGfsDriver() *gfsDriver {
 	d := &gfsDriver{
-		m: &sync.Mutex{},
+		volumeMap: make(map[string]map[string]string),
+		m:         &sync.Mutex{},
 	}
 	return d
 }

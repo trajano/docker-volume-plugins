@@ -1,9 +1,11 @@
-package gfs
+package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/docker/go-plugins-helpers/volume"
 	"sync"
+	"syscall"
 )
 
 type gfsDriver struct {
@@ -81,6 +83,9 @@ func (p *gfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, erro
 
 func (p *gfsDriver) Unmount(req *volume.UnmountRequest) error {
 	p.unmount++
+	// check if forced if so MNT_FORCE
+	flags := 0
+	syscall.Unmount(req.Name, flags)
 	for _, v := range p.volumes {
 		if v == req.Name {
 			return nil
@@ -97,6 +102,11 @@ func buildGfsDriver() *gfsDriver {
 }
 
 func main() {
+	helpPtr := flag.Bool("h", false, "Show help")
+	flag.Parse()
+	if *helpPtr {
+		return
+	}
 	d := buildGfsDriver()
 	volume.NewHandler(d)
 }

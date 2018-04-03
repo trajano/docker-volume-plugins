@@ -2,10 +2,12 @@ package main
 
 import (
 	"flag"
+	"encoding/base64"
 	"fmt"
 	"github.com/docker/go-plugins-helpers/volume"
 	"sync"
 	"syscall"
+	"crypto/sha512"
 )
 
 type gfsDriver struct {
@@ -19,6 +21,15 @@ type gfsDriver struct {
 	remove       int
 	capabilities int
 	m            *sync.Mutex
+}
+
+// Builds the mountpoint file name based on the volume name.  The mount name
+// is an 86 character string (intented to be this long to prevent it from
+// working in Windows).  The string is a base64uri encoded version of the
+// SHA-512 hash of the volume name
+func MountPointFilename(volumeName string) string {
+	hash := sha512.Sum512([]byte(volumeName))
+	return base64.RawURLEncoding.EncodeToString(hash[:])
 }
 
 func (d *gfsDriver) Capabilities() *volume.CapabilitiesResponse {

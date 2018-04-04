@@ -130,6 +130,8 @@ func (p *gfsDriver) Path(req *volume.PathRequest) (*volume.PathResponse, error) 
 
 func (p *gfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) {
 	log.Println("mount", req.Name)
+	p.m.Lock()
+	defer p.m.Unlock()
 	volumeInfo, volumeExists := p.volumeMap[req.Name]
 	if !volumeExists {
 		return &volume.MountResponse{}, fmt.Errorf("volume %s does not exist", req.Name)
@@ -145,22 +147,27 @@ func (p *gfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, erro
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
 	}
 
+	volumeInfo.status["mounted"] = true
 	return &volume.MountResponse{
 		Mountpoint: volumeInfo.mountPoint,
 	}, nil
 }
 
 func (p *gfsDriver) Unmount(req *volume.UnmountRequest) error {
-	p.unmount++
+	p.m.Lock()
+	defer p.m.Unlock()
+	volumeInfo, volumeExists := p.volumeMap[req.Name]
+	if !volumeExists {
+		return fmt.Errorf("volume %s does not exist", req.Name)
+	}
 	// check if forced if so MNT_FORCE
 	flags := 0
-	syscall.Unmount(req.Name, flags)
-	for _, v := range p.volumes {
-		if v == req.Name {
-			return nil
-		}
+	err := syscall.Unmount(volumeInfo.mountPoint, flags)
+	if err != nil {
+		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
 	}
-	return fmt.Errorf("no such volume")
+	volumeInfo.status["mounted"] = false
+	return nil
 }
 
 func buildGfsDriver() *gfsDriver {

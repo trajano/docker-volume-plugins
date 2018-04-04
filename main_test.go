@@ -35,7 +35,7 @@ func randStringBytesMaskImprSrc(n int) string {
 
 func TestMountPointPathname(t *testing.T) {
 	pathname := MountPointPathname("teststring")
-	expected := "abcd"
+	expected := "YlOzkHHl34tQmPWSAtQUw3oX1qOKh171-MfYmwISsChpLT0gkM4Drh3mbIYvqKVh5X7Z63k1zmJzRPdCwJMdcg"
 	if pathname != expected {
 		t.Errorf("MountPointPathname was incorrect, got: %s, want: %s.", pathname, expected)
 	}

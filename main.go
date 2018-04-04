@@ -199,8 +199,10 @@ func (p *gfsDriver) Unmount(req *volume.UnmountRequest) error {
 }
 
 func buildGfsDriver() *gfsDriver {
-	servers := strings.Split(os.Getenv("SERVERS"), ",")
-
+	var servers []string
+	if os.Getenv("SERVERS") != "" {
+		servers = strings.Split(os.Getenv("SERVERS"), ",")
+	}
 	d := &gfsDriver{
 		volumeMap: make(map[string]gfsVolumeInfo),
 		m:         &sync.RWMutex{},

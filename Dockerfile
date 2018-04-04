@@ -4,7 +4,8 @@ FROM gluster/glusterfs-client
 RUN yum install -q -y go git
 COPY . src
 WORKDIR /src
-RUN go get -d && go build -i -o /glusterfs-volume-plugin
+RUN go get -d && go build -i -o /glusterfs-volume-plugin && \
+  rn -rf /src $GOPATH && \
+  yum remove -y go git && \
+  yum autoremove -y
 WORKDIR /
-#COPY config.json /
-# yum autoremove go

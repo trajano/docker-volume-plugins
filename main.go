@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
+	"log"
 	"sync"
 	"syscall"
 
@@ -153,5 +154,8 @@ func main() {
 	}
 	d := buildGfsDriver()
 	h := volume.NewHandler(d)
-	h.ServeUnix("gfs", 0)
+	err := h.ServeUnix("gfs", 0)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

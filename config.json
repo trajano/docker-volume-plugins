@@ -1,7 +1,16 @@
 {
     "description": "GlusterFS plugin for Docker",
 	"documentation": "https://github.com/trajano/glusterfs-volume-plugin/",
-	"entrypoint": ["/glusterfs-volume-plugin"],
+    "entrypoint": ["/glusterfs-volume-plugin"],
+    "env": [
+        {
+            "name": "SERVERS",
+            "settable": [
+                "value"
+            ],
+            "value": ""
+        }
+    },
 	"network": {
         "type": "host"
     },

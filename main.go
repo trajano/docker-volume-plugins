@@ -150,6 +150,7 @@ func main() {
 	helpPtr := flag.Bool("h", false, "Show help")
 	flag.Parse()
 	if *helpPtr {
+		flag.Usage()
 		return
 	}
 	d := buildGfsDriver()

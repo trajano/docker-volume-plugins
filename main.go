@@ -120,7 +120,7 @@ func (p *gfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, erro
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
 	}
 
-	cmd := exec.Command("glusterfs", "-s", "store1", "--volfile-id="+req.Name, volumeInfo.mountPoint)
+	cmd := exec.Command("glusterfs", "-s", "store1", "-s", "store2", "--volfile-id="+req.Name, volumeInfo.mountPoint)
 	err = cmd.Run()
 	if err != nil {
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())

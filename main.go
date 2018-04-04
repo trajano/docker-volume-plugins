@@ -35,7 +35,7 @@ func AppendVolumeOptionsByVolumeName(args []string, volumeName string) []string 
 	parts := strings.SplitN(volumeName, "/", 2)
 	ret := append(args, "--volfile-id="+parts[0])
 	if len(parts) == 2 {
-		ret = append(ret, "--subdir-mount="+parts[1])
+		ret = append(ret, "--subdir-mount=/"+parts[1])
 	}
 	return ret
 }

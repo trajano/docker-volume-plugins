@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"sync"
 	"syscall"
 
@@ -137,7 +138,13 @@ func (p *gfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, erro
 	if err != nil {
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
 	}
-	// at this point run gluster
+
+	cmd := exec.Command("glusterfs", "-s", "store1", "--volfile-id="+req.Name)
+	err = cmd.Run()
+	if err != nil {
+		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
+	}
+
 	return &volume.MountResponse{
 		Mountpoint: volumeInfo.mountPoint,
 	}, nil

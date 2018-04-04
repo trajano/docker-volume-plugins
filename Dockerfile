@@ -6,6 +6,6 @@ COPY . src
 WORKDIR /src
 RUN go get -d && go build -i -o /glusterfs-volume-plugin && \
   rm -rf /src $GOPATH && \
-  yum remove -y go git && \
-  yum autoremove -y
+  yum remove -q -y go git && \
+  yum autoremove -q -y
 WORKDIR /

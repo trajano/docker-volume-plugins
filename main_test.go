@@ -33,19 +33,19 @@ func randStringBytesMaskImprSrc(n int) string {
 	return string(b)
 }
 
-func TestMountPointPathname(t *testing.T) {
-	pathname := MountPointPathname("teststring")
-	expected := "YlOzkHHl34tQmPWSAtQUw3oX1qOKh171-MfYmwISsChpLT0gkM4Drh3mbIYvqKVh5X7Z63k1zmJzRPdCwJMdcg"
+func TestMountPointPath(t *testing.T) {
+	pathname := MountPointPath("teststring")
+	expected := "/volumes/YlOzkHHl34tQmPWSAtQUw3oX1qOKh171-MfYmwISsChpLT0gkM4Drh3mbIYvqKVh5X7Z63k1zmJzRPdCwJMdcg"
 	if pathname != expected {
-		t.Errorf("MountPointPathname was incorrect, got: %s, want: %s.", pathname, expected)
+		t.Errorf("MountPointPath was incorrect, got: %s, want: %s.", pathname, expected)
 	}
 }
 
-func TestMountPointPathnameIdempotency(t *testing.T) {
+func TestMountPointPathIdempotency(t *testing.T) {
 	randVolumeName := randStringBytesMaskImprSrc(64)
-	pathname1 := MountPointPathname(randVolumeName)
-	pathname2 := MountPointPathname(randVolumeName)
+	pathname1 := MountPointPath(randVolumeName)
+	pathname2 := MountPointPath(randVolumeName)
 	if pathname1 != pathname2 {
-		t.Errorf("MountPointPathname was not identical with the same input, got: %s, want: %s.", pathname1, pathname2)
+		t.Errorf("MountPointPath was not identical with the same input, got: %s, want: %s.", pathname1, pathname2)
 	}
 }

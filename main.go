@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"sync"
 	"syscall"
 
@@ -33,13 +34,14 @@ type gfsDriver struct {
 	m            *sync.Mutex
 }
 
-// MountPointPathname Builds the mountpoint path name based on the volume
+// MountPointPath Builds the mountpoint path name based on the volume
 // name.  The mount name is an 86 character string (intented to be this
 // long to prevent it from working in Windows).  The string is a base64uri
-// encoded version of the SHA-512 hash of the volume name
-func MountPointPathname(volumeName string) string {
+// encoded version of the SHA-512 hash of the volume name.  It also adds
+// the /volumes/ prefix
+func MountPointPath(volumeName string) string {
 	hash := sha512.Sum512([]byte(volumeName))
-	return base64.RawURLEncoding.EncodeToString(hash[:])
+	return "/volumes/" + base64.RawURLEncoding.EncodeToString(hash[:])
 }
 
 func (p *gfsDriver) Capabilities() *volume.CapabilitiesResponse {
@@ -61,7 +63,7 @@ func (p *gfsDriver) Create(req *volume.CreateRequest) error {
 	status["mounted"] = false
 	p.volumeMap[req.Name] = gfsVolumeInfo{
 		options:    req.Options,
-		mountPoint: MountPointPathname(req.Name),
+		mountPoint: MountPointPath(req.Name),
 		status:     status,
 	}
 	p.volumes = append(p.volumes, req.Name)
@@ -116,13 +118,16 @@ func (p *gfsDriver) Path(req *volume.PathRequest) (*volume.PathResponse, error) 
 }
 
 func (p *gfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) {
-	p.mount++
-	for _, v := range p.volumes {
-		if v == req.Name {
-			return &volume.MountResponse{}, nil
-		}
+	volumeInfo, volumeExists := p.volumeMap[req.Name]
+	if !volumeExists {
+		return &volume.MountResponse{}, fmt.Errorf("volume %s does not exist", req.Name)
 	}
-	return &volume.MountResponse{}, fmt.Errorf("no such volume")
+	err := os.MkdirAll(volumeInfo.mountPoint, 0755)
+	if err != nil {
+		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
+	}
+	// at this point run gluster
+	return &volume.MountResponse{}, nil
 }
 
 func (p *gfsDriver) Unmount(req *volume.UnmountRequest) error {

@@ -27,8 +27,8 @@ type mountedVolumeDriverIntf interface {
 }
 
 type MountedVolumeDriver struct {
-	MountExecutable        string
-	MountPointAfterOptions bool
+	mountExecutable        string
+	mountPointAfterOptions bool
 	volumeMap              map[string]mountedVolumeInfo
 	m                      *sync.RWMutex
 	mountedVolumeDriverIntf
@@ -138,13 +138,13 @@ func (p *MountedVolumeDriver) Mount(req *volume.MountRequest) (*volume.MountResp
 	}
 
 	var args []string
-	if p.MountPointAfterOptions {
+	if p.mountPointAfterOptions {
 		args = append(volumeInfo.args, mountPoint)
 	} else {
 		args = append(args, mountPoint)
 		args = append(args, volumeInfo.args...)
 	}
-	cmd := exec.Command(p.MountExecutable, args...)
+	cmd := exec.Command(p.mountExecutable, args...)
 	err = cmd.Run()
 	if err != nil {
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
@@ -179,10 +179,11 @@ func (p *MountedVolumeDriver) Unmount(req *volume.UnmountRequest) error {
 	return nil
 }
 
-func BuildMountedVolumeDriver(mountExecutable string, mountPointAfterOptions bool) *MountedVolumeDriver {
+// NewMountedVolumeDriver constructor for MountedVolumeDriver
+func NewMountedVolumeDriver(mountExecutable string, mountPointAfterOptions bool) *MountedVolumeDriver {
 	d := &MountedVolumeDriver{
-		MountExecutable:        mountExecutable,
-		MountPointAfterOptions: mountPointAfterOptions,
+		mountExecutable:        mountExecutable,
+		mountPointAfterOptions: mountPointAfterOptions,
 		volumeMap:              make(map[string]mountedVolumeInfo),
 		m:                      &sync.RWMutex{},
 	}

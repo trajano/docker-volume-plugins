@@ -73,7 +73,7 @@ func buildGfsDriver() *gfsDriver {
 		servers = strings.Split(os.Getenv("SERVERS"), ",")
 	}
 	d := &gfsDriver{
-		MountedVolumeDriver: *BuildMountedVolumeDriver("glsuterfs", true),
+		MountedVolumeDriver: *NewMountedVolumeDriver("glsuterfs", true),
 		servers:             servers,
 	}
 	return d

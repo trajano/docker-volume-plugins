@@ -32,11 +32,11 @@ type gfsDriver struct {
 	m            *sync.Mutex
 }
 
-// MountPointFilename Builds the mountpoint file name based on the volume
+// MountPointPathname Builds the mountpoint path name based on the volume
 // name.  The mount name is an 86 character string (intented to be this
 // long to prevent it from working in Windows).  The string is a base64uri
 // encoded version of the SHA-512 hash of the volume name
-func MountPointFilename(volumeName string) string {
+func MountPointPathname(volumeName string) string {
 	hash := sha512.Sum512([]byte(volumeName))
 	return base64.RawURLEncoding.EncodeToString(hash[:])
 }
@@ -60,7 +60,7 @@ func (p *gfsDriver) Create(req *volume.CreateRequest) error {
 	status["mounted"] = false
 	p.volumeMap[req.Name] = gfsVolumeInfo{
 		options:    req.Options,
-		mountPoint: MountPointFilename(req.Name),
+		mountPoint: MountPointPathname(req.Name),
 		status:     status,
 	}
 	p.volumes = append(p.volumes, req.Name)

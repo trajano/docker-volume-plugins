@@ -152,5 +152,6 @@ func main() {
 		return
 	}
 	d := buildGfsDriver()
-	volume.NewHandler(d)
+	h := volume.NewHandler(d)
+	h.ServeUnix("gfs", 0)
 }

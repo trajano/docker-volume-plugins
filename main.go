@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -15,16 +16,28 @@ import (
 type gfsVolumeInfo struct {
 	options    map[string]string
 	mountPoint string
+	args       []string
 	status     map[string]interface{}
 }
 
 type gfsDriver struct {
 	volumeMap map[string]gfsVolumeInfo
+	servers   []string
 	m         *sync.RWMutex
 }
 
 func (p *gfsDriver) Capabilities() *volume.CapabilitiesResponse {
 	return &volume.CapabilitiesResponse{Capabilities: volume.Capability{Scope: "global"}}
+}
+
+// AppendVolumeOptionsByVolumeName appends the command line arguments into the current argument list given the volume name
+func AppendVolumeOptionsByVolumeName(args []string, volumeName string) []string {
+	parts := strings.SplitN(volumeName, "/", 2)
+	ret := append(args, "--volfile-id="+parts[0])
+	if len(parts) == 2 {
+		ret = append(args, "--subdir-mount="+parts[1])
+	}
+	return ret
 }
 
 // Attempts to create the volume, if it has been created already it will
@@ -33,16 +46,45 @@ func (p *gfsDriver) Create(req *volume.CreateRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
-	log.Println("create", req.Name)
 	_, volumeExists := p.volumeMap[req.Name]
 	if volumeExists {
 		return fmt.Errorf("volume %s already exists", req.Name)
 	}
+
+	servers, serversDefinedInOpts := req.Options["servers"]
+	glusteropts, glusteroptsInOpts := req.Options["glusteropts"]
+
+	var args []string
+	if len(p.servers) > 0 && (serversDefinedInOpts || glusteroptsInOpts) {
+		return fmt.Errorf("SERVERS is set, options are not allowed")
+	}
+	if serversDefinedInOpts && glusteroptsInOpts {
+		return fmt.Errorf("servers is set, glusteropts are not allowed")
+	}
+	if len(p.servers) == 0 && !serversDefinedInOpts && !glusteroptsInOpts {
+		return fmt.Errorf("One of SERVERS, driver_opts.servers or driver_opts.glusteropts must be specified")
+	}
+
+	if len(p.servers) > 0 {
+		for _, server := range p.servers {
+			args = append(args, "-s", server)
+		}
+		args = AppendVolumeOptionsByVolumeName(args, req.Name)
+	} else if serversDefinedInOpts {
+		for _, server := range strings.Split(servers, ",") {
+			args = append(args, "-s", server)
+		}
+		args = AppendVolumeOptionsByVolumeName(args, req.Name)
+	} else {
+		args = strings.Split(glusteropts, " ")
+	}
+
 	status := make(map[string]interface{})
 	status["mounted"] = false
 	p.volumeMap[req.Name] = gfsVolumeInfo{
 		options:    req.Options,
 		mountPoint: "",
+		args:       args,
 		status:     status,
 	}
 	return nil
@@ -120,7 +162,8 @@ func (p *gfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, erro
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
 	}
 
-	cmd := exec.Command("glusterfs", "-s", "store1", "-s", "store2", "--volfile-id="+req.Name, volumeInfo.mountPoint)
+	args := append(volumeInfo.args, mountPoint)
+	cmd := exec.Command("glusterfs", args...)
 	err = cmd.Run()
 	if err != nil {
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
@@ -155,9 +198,12 @@ func (p *gfsDriver) Unmount(req *volume.UnmountRequest) error {
 }
 
 func buildGfsDriver() *gfsDriver {
+	servers := strings.Split(os.Getenv("SERVERS"), ",")
+
 	d := &gfsDriver{
 		volumeMap: make(map[string]gfsVolumeInfo),
 		m:         &sync.RWMutex{},
+		servers:   servers,
 	}
 	return d
 }

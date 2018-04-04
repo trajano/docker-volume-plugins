@@ -1,8 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/docker/go-plugins-helpers/volume"
+	"log"
 	"os"
 	"os/exec"
 	"sync"
@@ -29,6 +31,7 @@ type mountedVolumeDriverIntf interface {
 type MountedVolumeDriver struct {
 	mountExecutable        string
 	mountPointAfterOptions bool
+	dockerSocketName       string
 	volumeMap              map[string]mountedVolumeInfo
 	m                      *sync.RWMutex
 	mountedVolumeDriverIntf
@@ -164,26 +167,47 @@ func (p *MountedVolumeDriver) Unmount(req *volume.UnmountRequest) error {
 	if !volumeExists {
 		return fmt.Errorf("volume %s does not exist", req.Name)
 	}
+	mountPoint := "/volumes/" + req.ID
 	// check if forced if so MNT_FORCE
 	flags := 0
-	err := syscall.Unmount("/volumes/"+req.ID, flags)
+	err := syscall.Unmount(mountPoint, flags)
 	if err != nil {
 		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
 	}
 	volumeInfo.mountPoint = ""
 	volumeInfo.status["mounted"] = false
-	err = os.Remove("/volumes/" + req.ID)
+	err = os.Remove(mountPoint)
 	if err != nil {
 		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
 	}
 	return nil
 }
 
+// ServeUnix makes the handler to listen for requests in a unix socket.
+// It also creates the socket filebased on the driver in the right directory
+// for docker to read.  If the "-h" argument is passed in on start up it
+// will simply display the usage and terminate.
+func (p *MountedVolumeDriver) ServeUnix() {
+	helpPtr := flag.Bool("h", false, "Show help")
+	flag.Parse()
+	if *helpPtr {
+		flag.Usage()
+		return
+	}
+
+	h := volume.NewHandler(p)
+	err := h.ServeUnix(p.dockerSocketName, 0)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 // NewMountedVolumeDriver constructor for MountedVolumeDriver
-func NewMountedVolumeDriver(mountExecutable string, mountPointAfterOptions bool) *MountedVolumeDriver {
+func NewMountedVolumeDriver(mountExecutable string, mountPointAfterOptions bool, dockerSocketName string) *MountedVolumeDriver {
 	d := &MountedVolumeDriver{
 		mountExecutable:        mountExecutable,
 		mountPointAfterOptions: mountPointAfterOptions,
+		dockerSocketName:       dockerSocketName,
 		volumeMap:              make(map[string]mountedVolumeInfo),
 		m:                      &sync.RWMutex{},
 	}

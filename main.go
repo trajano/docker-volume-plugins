@@ -1,9 +1,7 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -73,23 +71,13 @@ func buildGfsDriver() *gfsDriver {
 		servers = strings.Split(os.Getenv("SERVERS"), ",")
 	}
 	d := &gfsDriver{
-		MountedVolumeDriver: *NewMountedVolumeDriver("glsuterfs", true),
+		MountedVolumeDriver: *NewMountedVolumeDriver("glusterfs", true, "gfs"),
 		servers:             servers,
 	}
 	return d
 }
 
 func main() {
-	helpPtr := flag.Bool("h", false, "Show help")
-	flag.Parse()
-	if *helpPtr {
-		flag.Usage()
-		return
-	}
 	d := buildGfsDriver()
-	h := volume.NewHandler(d)
-	err := h.ServeUnix("gfs", 0)
-	if err != nil {
-		log.Fatal(err)
-	}
+	d.ServeUnix()
 }

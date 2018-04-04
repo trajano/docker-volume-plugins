@@ -31,7 +31,7 @@ type gfsDriver struct {
 	unmount      int
 	remove       int
 	capabilities int
-	m            *sync.Mutex
+	m            *sync.RWMutex
 }
 
 // MountPointPath Builds the mountpoint path name based on the volume
@@ -72,6 +72,8 @@ func (p *gfsDriver) Create(req *volume.CreateRequest) error {
 }
 
 func (p *gfsDriver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
+	p.m.RLock()
+	defer p.m.RUnlock()
 	p.get++
 	for _, v := range p.volumes {
 		if v == req.Name {
@@ -82,6 +84,8 @@ func (p *gfsDriver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
 }
 
 func (p *gfsDriver) List() (*volume.ListResponse, error) {
+	p.m.RLock()
+	defer p.m.RUnlock()
 	var vols []*volume.Volume
 	for k, v := range p.volumeMap {
 		status := make(map[string]interface{})
@@ -110,14 +114,17 @@ func (p *gfsDriver) Remove(req *volume.RemoveRequest) error {
 }
 
 func (p *gfsDriver) Path(req *volume.PathRequest) (*volume.PathResponse, error) {
+	p.m.RLock()
+	defer p.m.RUnlock()
+
 	log.Println("path", req.Name)
-	p.path++
-	for _, v := range p.volumes {
-		if v == req.Name {
-			return &volume.PathResponse{}, nil
-		}
+
+	volumeInfo, volumeExists := p.volumeMap[req.Name]
+	if !volumeExists {
+		return &volume.PathResponse{}, fmt.Errorf("volume %s does not exist", req.Name)
 	}
-	return &volume.PathResponse{}, fmt.Errorf("no such volume")
+
+	return &volume.PathResponse{Mountpoint: volumeInfo.mountPoint}, nil
 }
 
 func (p *gfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) {
@@ -152,7 +159,7 @@ func (p *gfsDriver) Unmount(req *volume.UnmountRequest) error {
 func buildGfsDriver() *gfsDriver {
 	d := &gfsDriver{
 		volumeMap: make(map[string]gfsVolumeInfo),
-		m:         &sync.Mutex{},
+		m:         &sync.RWMutex{},
 	}
 	return d
 }

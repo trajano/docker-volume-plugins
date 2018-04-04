@@ -127,7 +127,9 @@ func (p *gfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, erro
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
 	}
 	// at this point run gluster
-	return &volume.MountResponse{}, nil
+	return &volume.MountResponse{
+		Mountpoint: volumeInfo.mountPoint,
+	}, nil
 }
 
 func (p *gfsDriver) Unmount(req *volume.UnmountRequest) error {

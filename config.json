@@ -14,17 +14,17 @@
 	"network": {
         "type": "host"
     },
-    "devices": [
-        {
-            "path": "/dev/fuse"
-        }
-    ],
     "propagatedMount": "/volumes",
 	"interface" : {
         "types": ["docker.volumedriver/1.0"],
         "socket": "gfs.sock"
 	},
 	"linux": {
-		"capabilities": ["CAP_SYS_ADMIN"]
+        "capabilities": ["CAP_SYS_ADMIN"],
+        "devices": [
+            {
+                "path": "/dev/fuse"
+            }
+        ]
 	}
 }

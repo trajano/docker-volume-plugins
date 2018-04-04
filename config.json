@@ -10,7 +10,7 @@
             ],
             "value": ""
         }
-    },
+    ],
 	"network": {
         "type": "host"
     },
@@ -19,7 +19,7 @@
             "path": "/dev/fuse"
         }
     ],
-    "propagatedMount": "/var/lib/docker/volumes",
+    "propagatedMount": "/volumes",
 	"interface" : {
         "types": ["docker.volumedriver/1.0"],
         "socket": "gfs.sock"

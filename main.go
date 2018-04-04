@@ -81,6 +81,7 @@ func (p *gfsDriver) Create(req *volume.CreateRequest) error {
 
 	status := make(map[string]interface{})
 	status["mounted"] = false
+	status["args"] = args
 	p.volumeMap[req.Name] = gfsVolumeInfo{
 		options:    req.Options,
 		mountPoint: "",

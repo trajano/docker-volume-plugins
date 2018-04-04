@@ -6,4 +6,4 @@ docker export "$id" | tar -x -C build/rootfs
 docker rm -vf "$id"
 docker rmi rootfsimage
 cp config.json build
-docker plugin create trajano/glusterfs-volume-plugin
+docker plugin create trajano/glusterfs-volume-plugin build

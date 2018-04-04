@@ -28,6 +28,8 @@ type mountedVolumeDriverIntf interface {
 	volume.Driver
 }
 
+// MountedVolumeDriver extends the volume.Driver by implementing template versions
+// of the methods.
 type MountedVolumeDriver struct {
 	mountExecutable        string
 	mountPointAfterOptions bool
@@ -130,6 +132,7 @@ func (p *MountedVolumeDriver) Path(req *volume.PathRequest) (*volume.PathRespons
 func (p *MountedVolumeDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) {
 	p.m.Lock()
 	defer p.m.Unlock()
+
 	volumeInfo, volumeExists := p.volumeMap[req.Name]
 	if !volumeExists {
 		return &volume.MountResponse{}, fmt.Errorf("volume %s does not exist", req.Name)
@@ -163,6 +166,7 @@ func (p *MountedVolumeDriver) Mount(req *volume.MountRequest) (*volume.MountResp
 func (p *MountedVolumeDriver) Unmount(req *volume.UnmountRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
+	
 	volumeInfo, volumeExists := p.volumeMap[req.Name]
 	if !volumeExists {
 		return fmt.Errorf("volume %s does not exist", req.Name)

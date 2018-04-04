@@ -1,7 +1,7 @@
-This is a managed plugin only, no legacy support.
 
 ### Caveats:
 
+- This is a managed plugin only, no legacy support.
 - In order to properly support versions use `--alias` when installing the plugin.
 - This only supports one glusterfs cluster per instance use `--alias` to define separate instances
 - The value of `SERVERS` is initially blank it needs `docker plugin glusterfs set SERVERS=store1,store2` if it is set then it will be used for all servers and low level options will not be allowed.  Primarily this is to control what the deployed stacks can perform.

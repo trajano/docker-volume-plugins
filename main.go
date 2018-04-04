@@ -54,6 +54,7 @@ func (p *gfsDriver) Create(req *volume.CreateRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
+	log.Println("create", req.Name)
 	_, volumeExists := p.volumeMap[req.Name]
 	if volumeExists {
 		return fmt.Errorf("volume %s already exists", req.Name)
@@ -95,6 +96,7 @@ func (p *gfsDriver) List() (*volume.ListResponse, error) {
 }
 
 func (p *gfsDriver) Remove(req *volume.RemoveRequest) error {
+	log.Println("remove", req.Name)
 	p.m.Lock()
 	defer p.m.Unlock()
 
@@ -108,6 +110,7 @@ func (p *gfsDriver) Remove(req *volume.RemoveRequest) error {
 }
 
 func (p *gfsDriver) Path(req *volume.PathRequest) (*volume.PathResponse, error) {
+	log.Println("path", req.Name)
 	p.path++
 	for _, v := range p.volumes {
 		if v == req.Name {
@@ -118,6 +121,7 @@ func (p *gfsDriver) Path(req *volume.PathRequest) (*volume.PathResponse, error) 
 }
 
 func (p *gfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) {
+	log.Println("mount", req.Name)
 	volumeInfo, volumeExists := p.volumeMap[req.Name]
 	if !volumeExists {
 		return &volume.MountResponse{}, fmt.Errorf("volume %s does not exist", req.Name)

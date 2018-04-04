@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/sha512"
-	"encoding/base64"
 	"flag"
 	"fmt"
 	"log"
@@ -35,16 +33,6 @@ type gfsDriver struct {
 	m            *sync.RWMutex
 }
 
-// MountPointPath Builds the mountpoint path name based on the volume
-// name.  The mount name is an 86 character string (intented to be this
-// long to prevent it from working in Windows).  The string is a base64uri
-// encoded version of the SHA-512 hash of the volume name.  It also adds
-// the /volumes/ prefix
-func MountPointPath(volumeName string) string {
-	hash := sha512.Sum512([]byte(volumeName))
-	return "/volumes/" + base64.RawURLEncoding.EncodeToString(hash[:])
-}
-
 func (p *gfsDriver) Capabilities() *volume.CapabilitiesResponse {
 	return &volume.CapabilitiesResponse{Capabilities: volume.Capability{Scope: "global"}}
 }
@@ -65,7 +53,7 @@ func (p *gfsDriver) Create(req *volume.CreateRequest) error {
 	status["mounted"] = false
 	p.volumeMap[req.Name] = gfsVolumeInfo{
 		options:    req.Options,
-		mountPoint: MountPointPath(req.Name),
+		mountPoint: "",
 		status:     status,
 	}
 	p.volumes = append(p.volumes, req.Name)
@@ -118,8 +106,6 @@ func (p *gfsDriver) Path(req *volume.PathRequest) (*volume.PathResponse, error) 
 	p.m.RLock()
 	defer p.m.RUnlock()
 
-	log.Println("path", req.Name)
-
 	volumeInfo, volumeExists := p.volumeMap[req.Name]
 	if !volumeExists {
 		return &volume.PathResponse{}, fmt.Errorf("volume %s does not exist", req.Name)
@@ -136,7 +122,8 @@ func (p *gfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, erro
 	if !volumeExists {
 		return &volume.MountResponse{}, fmt.Errorf("volume %s does not exist", req.Name)
 	}
-	err := os.MkdirAll(volumeInfo.mountPoint, 0755)
+	mountPoint := "/volumes/" + req.ID
+	err := os.MkdirAll(mountPoint, 0755)
 	if err != nil {
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
 	}
@@ -146,7 +133,7 @@ func (p *gfsDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, erro
 	if err != nil {
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
 	}
-
+	volumeInfo.mountPoint = mountPoint
 	volumeInfo.status["mounted"] = true
 	return &volume.MountResponse{
 		Mountpoint: volumeInfo.mountPoint,
@@ -162,11 +149,16 @@ func (p *gfsDriver) Unmount(req *volume.UnmountRequest) error {
 	}
 	// check if forced if so MNT_FORCE
 	flags := 0
-	err := syscall.Unmount(volumeInfo.mountPoint, flags)
+	err := syscall.Unmount("/volumes/"+req.ID, flags)
 	if err != nil {
 		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
 	}
+	volumeInfo.mountPoint = ""
 	volumeInfo.status["mounted"] = false
+	err = os.Remove("/volumes/" + req.ID)
+	if err != nil {
+		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
+	}
 	return nil
 }
 

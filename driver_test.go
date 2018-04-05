@@ -22,7 +22,9 @@ func (p *testDriver) MountOptions(req volume.CreateRequest) []string {
 }
 
 func TestCreate(t *testing.T) {
-	d := *NewMountedVolumeDriver("glusterfs", true, "gfs")
+	d := &testDriver{
+		MountedVolumeDriver: *NewMountedVolumeDriver("glusterfs", true, "gfs"),
+	}
 	d.Create(&volume.CreateRequest{
 		Name: "test",
 	})

@@ -51,7 +51,7 @@ func (p *MountedVolumeDriver) Create(req *volume.CreateRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
-	log.Println("Create", req.Name)
+	log.Println("Create", req.Name, p.mountedVolumeDriverIntf)
 
 	_, volumeExists := p.volumeMap[req.Name]
 	if volumeExists {

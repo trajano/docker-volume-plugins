@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/docker/go-plugins-helpers/volume"
 	"log"
 	"os"
 	"os/exec"
 	"sync"
 	"syscall"
+
+	"github.com/docker/go-plugins-helpers/volume"
 )
 
 type mountedVolumeInfo struct {
@@ -39,11 +40,12 @@ type MountedVolumeDriver struct {
 	mountedVolumeDriverIntf
 }
 
+// Capabilities indicate to the swarm manager that this supports global scope.
 func (p *MountedVolumeDriver) Capabilities() *volume.CapabilitiesResponse {
 	return &volume.CapabilitiesResponse{Capabilities: volume.Capability{Scope: "global"}}
 }
 
-// Attempts to create the volume, if it has been created already it will
+// Create attempts to create the volume, if it has been created already it will
 // return an error if it is already present.
 func (p *MountedVolumeDriver) Create(req *volume.CreateRequest) error {
 	p.m.Lock()
@@ -71,6 +73,7 @@ func (p *MountedVolumeDriver) Create(req *volume.CreateRequest) error {
 	return nil
 }
 
+// Get obtain information for specific single volume.
 func (p *MountedVolumeDriver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
 	p.m.RLock()
 	defer p.m.RUnlock()
@@ -88,6 +91,7 @@ func (p *MountedVolumeDriver) Get(req *volume.GetRequest) (*volume.GetResponse, 
 	}, nil
 }
 
+// List obtain information for all  volumes registered.
 func (p *MountedVolumeDriver) List() (*volume.ListResponse, error) {
 	p.m.RLock()
 	defer p.m.RUnlock()
@@ -104,6 +108,7 @@ func (p *MountedVolumeDriver) List() (*volume.ListResponse, error) {
 	return &volume.ListResponse{Volumes: vols}, nil
 }
 
+// Remove removes a specific volume.
 func (p *MountedVolumeDriver) Remove(req *volume.RemoveRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
@@ -117,6 +122,8 @@ func (p *MountedVolumeDriver) Remove(req *volume.RemoveRequest) error {
 	return nil
 }
 
+// Path Request the path to the volume with the given volume_name.
+// Mountpoint is blank until the Mount method is called.
 func (p *MountedVolumeDriver) Path(req *volume.PathRequest) (*volume.PathResponse, error) {
 	p.m.RLock()
 	defer p.m.RUnlock()
@@ -129,6 +136,7 @@ func (p *MountedVolumeDriver) Path(req *volume.PathRequest) (*volume.PathRespons
 	return &volume.PathResponse{Mountpoint: volumeInfo.mountPoint}, nil
 }
 
+// Mount performs the mount operation.  This will invoke the mount executable.
 func (p *MountedVolumeDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) {
 	p.m.Lock()
 	defer p.m.Unlock()
@@ -166,7 +174,7 @@ func (p *MountedVolumeDriver) Mount(req *volume.MountRequest) (*volume.MountResp
 func (p *MountedVolumeDriver) Unmount(req *volume.UnmountRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
-	
+
 	volumeInfo, volumeExists := p.volumeMap[req.Name]
 	if !volumeExists {
 		return fmt.Errorf("volume %s does not exist", req.Name)
@@ -216,5 +224,4 @@ func NewMountedVolumeDriver(mountExecutable string, mountPointAfterOptions bool,
 		m:                      &sync.RWMutex{},
 	}
 	return d
-
 }

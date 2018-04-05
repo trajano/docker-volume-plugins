@@ -4,6 +4,6 @@ FROM gluster/glusterfs-client
 RUN yum install -q -y go git
 RUN go get github.com/trajano/glusterfs-volume-plugin && \
   mv $HOME/go/bin/glusterfs-volume-plugin / && \
-  rm -rf /src $HOME/go && \
-  yum remove -q -y go git && \
+  rm -rf $HOME/go && \
+  yum remove -q -y go git gcc && \
   yum autoremove -q -y

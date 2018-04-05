@@ -51,6 +51,9 @@ func (p *MountedVolumeDriver) Create(req *volume.CreateRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
+	fmt.Println("Create", req)
+	log.Println("Create", req)
+
 	_, volumeExists := p.volumeMap[req.Name]
 	if volumeExists {
 		return fmt.Errorf("volume %s already exists", req.Name)

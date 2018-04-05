@@ -21,6 +21,13 @@ func (p *testDriver) MountOptions(req volume.CreateRequest) []string {
 	return args
 }
 
+func TestCapabilities(t *testing.T) {
+	d := &testDriver{
+		MountedVolumeDriver: *NewMountedVolumeDriver("glusterfs", true, "gfs"),
+	}
+	d.Capabilities()
+}
+
 func TestCreate(t *testing.T) {
 	d := &testDriver{
 		MountedVolumeDriver: *NewMountedVolumeDriver("glusterfs", true, "gfs"),

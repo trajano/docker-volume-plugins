@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -15,6 +16,7 @@ type gfsDriver struct {
 
 func (p *gfsDriver) Validate(req volume.CreateRequest) error {
 
+	log.Println("Validate", req)
 	_, serversDefinedInOpts := req.Options["servers"]
 	_, glusteroptsInOpts := req.Options["glusteropts"]
 
@@ -33,6 +35,7 @@ func (p *gfsDriver) Validate(req volume.CreateRequest) error {
 
 func (p *gfsDriver) MountOptions(req volume.CreateRequest) []string {
 
+	log.Println("MountOptions", req)
 	servers, serversDefinedInOpts := req.Options["servers"]
 	glusteropts, _ := req.Options["glusteropts"]
 

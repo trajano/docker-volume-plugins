@@ -148,8 +148,7 @@ func (p *MountedVolumeDriver) Mount(req *volume.MountRequest) (*volume.MountResp
 		return &volume.MountResponse{}, fmt.Errorf("volume %s does not exist", req.Name)
 	}
 	mountPoint := "/volumes/" + req.ID
-	err := os.MkdirAll(mountPoint, 0755)
-	if err != nil {
+	if err := os.MkdirAll(mountPoint, 0755); err != nil {
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
 	}
 

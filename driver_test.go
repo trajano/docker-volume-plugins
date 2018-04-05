@@ -5,5 +5,5 @@ import (
 )
 
 func TestCreate(t *testing.T) {
-	*NewMountedVolumeDriver("glusterfs", true, "gfs")
+	d := *NewMountedVolumeDriver("glusterfs", true, "gfs")
 }

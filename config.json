@@ -14,7 +14,7 @@
 	"network": {
         "type": "host"
     },
-    "propagatedMount": "/volumes",
+    "propagatedMount": "/var/lib/docker-volumes",
 	"interface" : {
         "types": ["docker.volumedriver/1.0"],
         "socket": "gfs.sock"

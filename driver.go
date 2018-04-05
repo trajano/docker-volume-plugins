@@ -19,7 +19,9 @@ type mountedVolumeInfo struct {
 	status     map[string]interface{}
 }
 
-type mountedVolumeDriverIntf interface {
+// MountedVolumeDriverCallback inteface specifies methods that need to be
+// implemented.
+type MountedVolumeDriverCallback interface {
 	// Validates the creation request to make sure the options are all valid.
 	Validate(req *volume.CreateRequest) error
 
@@ -37,7 +39,7 @@ type MountedVolumeDriver struct {
 	dockerSocketName       string
 	volumeMap              map[string]mountedVolumeInfo
 	m                      *sync.RWMutex
-	mountedVolumeDriverIntf
+	MountedVolumeDriverCallback
 }
 
 // Capabilities indicate to the swarm manager that this supports global scope.
@@ -50,8 +52,6 @@ func (p *MountedVolumeDriver) Capabilities() *volume.CapabilitiesResponse {
 func (p *MountedVolumeDriver) Create(req *volume.CreateRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
-
-	log.Println("Create", req.Name, p.mountedVolumeDriverIntf)
 
 	_, volumeExists := p.volumeMap[req.Name]
 	if volumeExists {
@@ -147,7 +147,7 @@ func (p *MountedVolumeDriver) Mount(req *volume.MountRequest) (*volume.MountResp
 	if !volumeExists {
 		return &volume.MountResponse{}, fmt.Errorf("volume %s does not exist", req.Name)
 	}
-	mountPoint := "/volumes/" + req.ID
+	mountPoint := volume.DefaultDockerRootDirectory + req.ID
 	if err := os.MkdirAll(mountPoint, 0755); err != nil {
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
 	}
@@ -179,20 +179,23 @@ func (p *MountedVolumeDriver) Unmount(req *volume.UnmountRequest) error {
 	if !volumeExists {
 		return fmt.Errorf("volume %s does not exist", req.Name)
 	}
-	mountPoint := "/volumes/" + req.ID
-	// check if forced if so MNT_FORCE
-	flags := 0
-	err := syscall.Unmount(mountPoint, flags)
-	if err != nil {
+	mountPoint := volume.DefaultDockerRootDirectory + req.ID
+	if err := syscall.Unmount(mountPoint, 0); err != nil {
 		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
 	}
 	volumeInfo.mountPoint = ""
 	volumeInfo.status["mounted"] = false
-	err = os.Remove(mountPoint)
-	if err != nil {
+
+	if err := os.Remove(mountPoint); err != nil {
 		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
 	}
 	return nil
+}
+
+// Handler sets the callback handler to the driver.  This needs to be called
+// before ServeUnix()
+func (p *MountedVolumeDriver) Handler(callback MountedVolumeDriverCallback) {
+	p.MountedVolumeDriverCallback = callback
 }
 
 // ServeUnix makes the handler to listen for requests in a unix socket.
@@ -223,6 +226,5 @@ func NewMountedVolumeDriver(mountExecutable string, mountPointAfterOptions bool,
 		volumeMap:              make(map[string]mountedVolumeInfo),
 		m:                      &sync.RWMutex{},
 	}
-	d.mountedVolumeDriverIntf = d
 	return d
 }

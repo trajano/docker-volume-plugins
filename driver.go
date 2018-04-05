@@ -192,10 +192,10 @@ func (p *MountedVolumeDriver) Unmount(req *volume.UnmountRequest) error {
 	return nil
 }
 
-// Handler sets the callback handler to the driver.  This needs to be called
+// Init sets the callback handler to the driver.  This needs to be called
 // before ServeUnix()
-func (p *MountedVolumeDriver) Handler(callback MountedVolumeDriverCallback) {
-	p.MountedVolumeDriverCallback = callback
+func (p *MountedVolumeDriver) Init() {
+	p.MountedVolumeDriverCallback = p
 }
 
 // ServeUnix makes the handler to listen for requests in a unix socket.

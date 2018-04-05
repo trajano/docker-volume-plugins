@@ -82,5 +82,6 @@ func buildGfsDriver() *gfsDriver {
 
 func main() {
 	d := buildGfsDriver()
+	d.Init()
 	d.ServeUnix()
 }

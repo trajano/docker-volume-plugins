@@ -14,7 +14,7 @@ type gfsDriver struct {
 	MountedVolumeDriver
 }
 
-func (p *gfsDriver) Validate(req volume.CreateRequest) error {
+func (p *gfsDriver) Validate(req *volume.CreateRequest) error {
 
 	log.Println("Validate", req)
 	_, serversDefinedInOpts := req.Options["servers"]
@@ -33,7 +33,7 @@ func (p *gfsDriver) Validate(req volume.CreateRequest) error {
 	return nil
 }
 
-func (p *gfsDriver) MountOptions(req volume.CreateRequest) []string {
+func (p *gfsDriver) MountOptions(req *volume.CreateRequest) []string {
 
 	log.Println("MountOptions", req)
 	servers, serversDefinedInOpts := req.Options["servers"]
@@ -77,11 +77,11 @@ func buildGfsDriver() *gfsDriver {
 		MountedVolumeDriver: *NewMountedVolumeDriver("glusterfs", true, "gfs"),
 		servers:             servers,
 	}
+	d.Init(d)
 	return d
 }
 
 func main() {
 	d := buildGfsDriver()
-	d.Init()
 	d.ServeUnix()
 }

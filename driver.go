@@ -194,8 +194,8 @@ func (p *MountedVolumeDriver) Unmount(req *volume.UnmountRequest) error {
 
 // Init sets the callback handler to the driver.  This needs to be called
 // before ServeUnix()
-func (p *MountedVolumeDriver) Init() {
-	p.MountedVolumeDriverCallback = p
+func (p *MountedVolumeDriver) Init(callback MountedVolumeDriverCallback) {
+	p.MountedVolumeDriverCallback = callback
 }
 
 // ServeUnix makes the handler to listen for requests in a unix socket.
@@ -211,8 +211,7 @@ func (p *MountedVolumeDriver) ServeUnix() {
 	}
 
 	h := volume.NewHandler(p)
-	err := h.ServeUnix(p.dockerSocketName, 0)
-	if err != nil {
+	if err := h.ServeUnix(p.dockerSocketName, 0); err != nil {
 		log.Fatal(err)
 	}
 }

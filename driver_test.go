@@ -25,7 +25,7 @@ func TestCapabilities(t *testing.T) {
 	d := &testDriver{
 		MountedVolumeDriver: *NewMountedVolumeDriver("glusterfs", true, "gfs"),
 	}
-	d.Init()
+	d.Init(d)
 	d.Capabilities()
 }
 
@@ -33,7 +33,7 @@ func TestCreate(t *testing.T) {
 	d := &testDriver{
 		MountedVolumeDriver: *NewMountedVolumeDriver("glusterfs", true, "gfs"),
 	}
-	d.Init()
+	d.Init(d)
 	d.Create(&volume.CreateRequest{
 		Name: "test",
 	})

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"sync"
 	"syscall"
 
@@ -147,7 +148,7 @@ func (p *MountedVolumeDriver) Mount(req *volume.MountRequest) (*volume.MountResp
 	if !volumeExists {
 		return &volume.MountResponse{}, fmt.Errorf("volume %s does not exist", req.Name)
 	}
-	mountPoint := volume.DefaultDockerRootDirectory + req.ID
+	mountPoint := path.Join(volume.DefaultDockerRootDirectory, req.ID)
 	if err := os.MkdirAll(mountPoint, 0755); err != nil {
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
 	}
@@ -179,7 +180,7 @@ func (p *MountedVolumeDriver) Unmount(req *volume.UnmountRequest) error {
 	if !volumeExists {
 		return fmt.Errorf("volume %s does not exist", req.Name)
 	}
-	mountPoint := volume.DefaultDockerRootDirectory + req.ID
+	mountPoint := path.Join(volume.DefaultDockerRootDirectory, req.ID)
 	if err := syscall.Unmount(mountPoint, 0); err != nil {
 		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
 	}

@@ -223,5 +223,6 @@ func NewMountedVolumeDriver(mountExecutable string, mountPointAfterOptions bool,
 		volumeMap:              make(map[string]mountedVolumeInfo),
 		m:                      &sync.RWMutex{},
 	}
+	d.mountedVolumeDriverIntf = d
 	return d
 }

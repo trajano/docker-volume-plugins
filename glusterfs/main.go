@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"../mounted-volume"
 	"github.com/docker/go-plugins-helpers/volume"
 )
 

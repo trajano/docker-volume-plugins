@@ -69,7 +69,7 @@ func AppendVolumeOptionsByVolumeName(args []string, volumeName string) []string 
 	return ret
 }
 
-func buildGfsDriver() *gfsDriver {
+func buildDriver() *gfsDriver {
 	var servers []string
 	if os.Getenv("SERVERS") != "" {
 		servers = strings.Split(os.Getenv("SERVERS"), ",")
@@ -83,6 +83,6 @@ func buildGfsDriver() *gfsDriver {
 }
 
 func main() {
-	d := buildGfsDriver()
+	d := buildDriver()
 	d.ServeUnix()
 }

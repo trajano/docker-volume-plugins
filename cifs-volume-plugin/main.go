@@ -6,16 +6,16 @@ import (
 	"os"
 	"strings"
 
-	"../mounted-volume"
 	"github.com/docker/go-plugins-helpers/volume"
+	"github.com/trajano/docker-volume-plugins/mounted-volume"
 )
 
-type gfsDriver struct {
+type cifsDriver struct {
 	servers []string
 	mountedvolume.MountedVolumeDriver
 }
 
-func (p *gfsDriver) Validate(req *volume.CreateRequest) error {
+func (p *cifsDriver) Validate(req *volume.CreateRequest) error {
 
 	log.Println("Validate", req)
 	_, serversDefinedInOpts := req.Options["servers"]
@@ -34,7 +34,7 @@ func (p *gfsDriver) Validate(req *volume.CreateRequest) error {
 	return nil
 }
 
-func (p *gfsDriver) MountOptions(req *volume.CreateRequest) []string {
+func (p *cifsDriver) MountOptions(req *volume.CreateRequest) []string {
 
 	log.Println("MountOptions", req)
 	servers, serversDefinedInOpts := req.Options["servers"]
@@ -69,7 +69,7 @@ func AppendVolumeOptionsByVolumeName(args []string, volumeName string) []string 
 	return ret
 }
 
-func buildGfsDriver() *gfsDriver {
+func buildDriver() *cifsDriver {
 	var servers []string
 	if os.Getenv("SERVERS") != "" {
 		servers = strings.Split(os.Getenv("SERVERS"), ",")
@@ -83,6 +83,6 @@ func buildGfsDriver() *gfsDriver {
 }
 
 func main() {
-	d := buildGfsDriver()
+	d := buildDriver()
 	d.ServeUnix()
 }

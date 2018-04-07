@@ -1,9 +1,7 @@
-FROM gluster/glusterfs-client
-#ENV http_proxy='http://ON34C02699866:3128' \
-#  https_proxy='http://ON34C02699866:3128'
-RUN yum install -q -y go git
-RUN go get github.com/trajano/glusterfs-volume-plugin && \
-  mv $HOME/go/bin/glusterfs-volume-plugin / && \
+FROM alpine:3.7
+RUN apk add -U go git cifs-utils
+RUN go get github.com/trajano/docker-volume-plugins/cifs-volume-plugin && \
+  mv $HOME/go/bin/cifs-volume-plugin / && \
   rm -rf $HOME/go && \
   yum remove -q -y go git gcc && \
   yum autoremove -q -y

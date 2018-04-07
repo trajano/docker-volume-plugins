@@ -74,7 +74,7 @@ func buildDriver() *cifsDriver {
 	if os.Getenv("SERVERS") != "" {
 		servers = strings.Split(os.Getenv("SERVERS"), ",")
 	}
-	d := &gfsDriver{
+	d := &cifsDriver{
 		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("glusterfs", true, "gfs"),
 		servers:             servers,
 	}

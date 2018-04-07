@@ -14,11 +14,13 @@
 	"network": {
         "type": "host"
     },
-	"mounts": {
-        "destination": "/root",
-        "source": "/root",
-        "options": "ro"
-    },
+	"mounts": [
+        {
+            "destination": "/root",
+            "source": "/root",
+            "options": "ro"
+        }
+    ],
     "propagatedMount": "/var/lib/docker-volumes",
 	"interface" : {
         "types": ["docker.volumedriver/1.0"],

@@ -1,5 +1,5 @@
 #!/bin/sh -e
-docker build -t rootfsimage .
+docker build -t rootfsimage glsuterfs-volume-plugin
 id=$(docker create rootfsimage -h) # id was cd851ce43a403 when the image was created
 rm -rf build/rootfs
 mkdir -p build/rootfs

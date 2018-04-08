@@ -24,7 +24,7 @@
     "propagatedMount": "/var/lib/docker-volumes",
 	"interface" : {
         "types": ["docker.volumedriver/1.0"],
-        "socket": "cifs.sock"
+        "socket": "volume.sock"
 	},
 	"linux": {
         "capabilities": ["CAP_SYS_ADMIN"]

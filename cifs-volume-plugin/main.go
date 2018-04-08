@@ -38,7 +38,7 @@ func (p *cifsDriver) MountOptions(req *volume.CreateRequest) []string {
 		log.Println("The credential file expected %s was not found, no implicit credential data will be passed by the plugin", credentialsFile)
 	}
 
-	return []string{"-t", "cifs", "-o", strings.Join(cifsoptsArray, ",")}
+	return []string{"-t", "cifs", "-o", strings.Join(cifsoptsArray, ","), "//" + req.Name}
 
 }
 

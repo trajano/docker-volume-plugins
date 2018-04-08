@@ -1,4 +1,5 @@
 #!/bin/sh -e
+TAG=$1
 build() {
     docker plugin rm -f trajano/$1 || true
     docker build -t rootfsimage $1
@@ -9,7 +10,13 @@ build() {
     docker rm -vf "$id"
     docker rmi rootfsimage
     cp $1/config.json build
-    docker plugin create trajano/$1 build
+    if [ -z "$TAG"]
+    then
+        docker plugin create trajano/$1 build
+    else
+        docker plugin create trajano/$1:$TAG build
+        docker plugin push trajano/$1:$TAG build
+    fi
 }
 build glusterfs-volume-plugin
 build cifs-volume-plugin

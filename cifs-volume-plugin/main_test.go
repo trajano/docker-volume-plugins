@@ -18,3 +18,14 @@ func TestCalculateCredentialsFile(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestCalculateCredentialsFile2(t *testing.T) {
+	d := &cifsDriver{
+		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("glusterfs", true, "gfs"),
+		credentialPath:      "/foo/bar",
+	}
+	if d.calculateCredentialsFile(strings.Split("foopath/foo/bar/path", "/")) != "" {
+		fmt.Errorf("did not expect file to exist")
+		t.Fail()
+	}
+}

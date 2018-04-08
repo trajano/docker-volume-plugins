@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -67,8 +66,6 @@ func (p *cifsDriver) calculateCredentialsFile(pathList []string) string {
 
 	credentialsFile := filepath.Join(p.credentialPath, strings.Join(pathList, "@"))
 
-	fmt.Println(credentialsFile, pathList)
-
 	if len(pathList) == 0 {
 		credentialsFile = filepath.Join(p.credentialPath, "default")
 		if _, err := os.Stat(credentialsFile); err != nil {
@@ -77,9 +74,7 @@ func (p *cifsDriver) calculateCredentialsFile(pathList []string) string {
 		return credentialsFile
 	}
 
-	fmt.Println("stattign", credentialsFile, pathList)
 	if _, err := os.Stat(credentialsFile); err != nil {
-		fmt.Println("not found ", credentialsFile, pathList)
 		return p.calculateCredentialsFile(pathList[:len(pathList)-1])
 	}
 	return credentialsFile

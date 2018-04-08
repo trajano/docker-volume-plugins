@@ -56,7 +56,7 @@ func buildDriver() *cifsDriver {
 	credentialPath := os.Getenv("CREDENTIAL_PATH")
 	fmt.Println("credentialPath", credentialPath)
 	d := &cifsDriver{
-		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("mount", true, "volume"),
+		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("mount", true, "cifs"),
 		credentialPath:      credentialPath,
 	}
 	fmt.Println("d", d)

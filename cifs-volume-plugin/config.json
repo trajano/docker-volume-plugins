@@ -18,13 +18,14 @@
         {
             "destination": "/root",
             "source": "/root",
+            "type": "bind",
             "options": [ "ro" ]
         }
     ],
     "propagatedMount": "/var/lib/docker-volumes",
 	"interface" : {
         "types": ["docker.volumedriver/1.0"],
-        "socket": "volume.sock"
+        "socket": "cifs.sock"
 	},
 	"linux": {
         "capabilities": ["CAP_SYS_ADMIN"]

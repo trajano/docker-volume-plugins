@@ -15,5 +15,6 @@ func TestCalculateCredentialsFile(t *testing.T) {
 	}
 	if d.calculateCredentialsFile(filepath.SplitList("foopath/foo/bar/path")) != "" {
 		fmt.Errorf("did not expect file to exist")
+		t.Fail()
 	}
 }

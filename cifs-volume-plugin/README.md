@@ -30,6 +30,15 @@ The credential file format is:
 
 To protect it within the plugin, the `/root` mount is remounted as a `1m tmpfs` until the credential file is needed (which is on the `Mount` call in which case `/root` is unmounted, the credential file is used then the `tmpfs` is remounted).  It also means that mounting cannot be done in parallel so it will slow down the startup if there are many shares.
 
+### Load order
+
+It is likely that a single share may have multiple subpaths.  Or there's a global default.  For this situation the lookup logic goes as follows given the example of `foohost/path/subdir` and the default credentials path, it will look for the following files in the following order 
+
+1. `/root/credentials/foohost@path@subdir
+2. `/root/credentials/foohost@path
+3. `/root/credentials/foohost
+4. `/root/credentials/default
+
 ## Usage
 
 This uses the `driver_opts.cifsopts` to define the list of options to pass to the mount command (a map couldn't be used as some options have no value and will limit future options from being added if I chose to add them.  The `credentials` should not be passed in and will be added automatically if the credentials file is found.  The `volumes.x.name` specifies the host and share path (do not add the `//` it will automatically be added).

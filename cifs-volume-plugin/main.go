@@ -1,9 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -25,14 +26,14 @@ func (p *cifsDriver) MountOptions(req *volume.CreateRequest) []string {
 
 	cifsopts, cifsoptsInOpts := req.Options["cifsopts"]
 
-	credentialsFile := path.Join(p.credentialPath, strings.Replace(req.Name, "/", "@", -1))
 	var cifsoptsArray []string
 	if cifsoptsInOpts {
 		cifsoptsArray = append(cifsoptsArray, strings.Split(cifsopts, ",")...)
 	}
 	unhideRoot()
 	defer hideRoot()
-	if _, err := os.Stat(credentialsFile); err == nil {
+	credentialsFile := p.calculateCredentialsFile(filepath.SplitList(req.Name))
+	if credentialsFile != "" {
 		cifsoptsArray = append(cifsoptsArray, "credentials="+credentialsFile)
 	} else {
 		log.Println("The credential file expected %s was not found, no implicit credential data will be passed by the plugin", credentialsFile)
@@ -60,6 +61,26 @@ func buildDriver() *cifsDriver {
 	d.Init(d)
 	hideRoot()
 	return d
+}
+
+func (p *cifsDriver) calculateCredentialsFile(pathList []string) string {
+
+	credentialsFile := filepath.Join(p.credentialPath, strings.Join(pathList, "@"))
+
+	fmt.Println(credentialsFile, pathList)
+
+	if len(pathList) == 0 {
+		credentialsFile = filepath.Join(p.credentialPath, "default")
+		if _, err := os.Stat(credentialsFile); err == nil {
+			return ""
+		}
+		return credentialsFile
+	}
+
+	if _, err := os.Stat(credentialsFile); err == nil {
+		return p.calculateCredentialsFile(pathList[:len(pathList)-1])
+	}
+	return credentialsFile
 }
 
 func hideRoot() error {

@@ -171,6 +171,7 @@ func (p *MountedVolumeDriver) Mount(req *volume.MountRequest) (*volume.MountResp
 		args = append(args, mountPoint)
 		args = append(args, volumeInfo.args...)
 	}
+	log.Println(args)
 	cmd := exec.Command(p.mountExecutable, args...)
 	if err := cmd.Run(); err != nil {
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())

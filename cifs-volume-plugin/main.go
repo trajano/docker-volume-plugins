@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"syscall"
 
 	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/trajano/docker-volume-plugins/mounted-volume"
@@ -66,21 +67,19 @@ func buildDriver() *cifsDriver {
 }
 
 func hideRoot() error {
-	return nil
-	// err := syscall.Mount("tmpfs", "/root", "tmpfs", syscall.MS_RDONLY|syscall.MS_NOEXEC|syscall.MS_NOSUID|syscall.MS_NODEV, "size=1m")
-	// if err != nil {
-	// 	log.Fatal("unable to hide /root")
-	// }
-	// return err
+	err := syscall.Mount("tmpfs", "/root", "tmpfs", syscall.MS_RDONLY|syscall.MS_NOEXEC|syscall.MS_NOSUID|syscall.MS_NODEV, "size=1m")
+	if err != nil {
+		log.Fatal("unable to hide /root")
+	}
+	return err
 }
 
 func unhideRoot() error {
-	return nil
-	// err := syscall.Unmount("/root", 0)
-	// if err != nil {
-	// 	log.Fatal("unable to hide /root")
-	// }
-	// return err
+	err := syscall.Unmount("/root", 0)
+	if err != nil {
+		log.Fatal("unable to hide /root")
+	}
+	return err
 }
 
 func main() {

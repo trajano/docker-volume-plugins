@@ -59,6 +59,13 @@ func (p *gfsDriver) MountOptions(req *volume.CreateRequest) []string {
 	return args
 }
 
+func (p *gfsDriver) PreMount(req *volume.MountRequest) error {
+	return nil
+}
+
+func (p *gfsDriver) PostMount(req *volume.MountRequest) {
+}
+
 // AppendVolumeOptionsByVolumeName appends the command line arguments into the current argument list given the volume name
 func AppendVolumeOptionsByVolumeName(args []string, volumeName string) []string {
 	parts := strings.SplitN(volumeName, "/", 2)

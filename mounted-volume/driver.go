@@ -20,14 +20,20 @@ type mountedVolumeInfo struct {
 	status     map[string]interface{}
 }
 
-// MountedVolumeDriverCallback inteface specifies methods that need to be
+// DriverCallback inteface specifies methods that need to be
 // implemented.
-type MountedVolumeDriverCallback interface {
+type DriverCallback interface {
 	// Validates the creation request to make sure the options are all valid.
 	Validate(req *volume.CreateRequest) error
 
 	// MountOptions specifies the options to be added to the mount process
 	MountOptions(req *volume.CreateRequest) []string
+
+	// PreMount is called before the mount occurs.  This can be used to deal with scenarios where the credential data need to be unlocked.
+	PreMount(req *volume.MountRequest) error
+
+	// PostMount is deferred after PreMount occurs.
+	PostMount(req *volume.MountRequest)
 
 	volume.Driver
 }
@@ -40,7 +46,7 @@ type MountedVolumeDriver struct {
 	dockerSocketName       string
 	volumeMap              map[string]mountedVolumeInfo
 	m                      *sync.RWMutex
-	MountedVolumeDriverCallback
+	DriverCallback
 }
 
 // Capabilities indicate to the swarm manager that this supports global scope.
@@ -153,6 +159,11 @@ func (p *MountedVolumeDriver) Mount(req *volume.MountRequest) (*volume.MountResp
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
 	}
 
+	if err := p.PreMount(req); err != nil {
+		return &volume.MountResponse{}, fmt.Errorf("error mounting %s on premount: %s", req.Name, err.Error())
+	}
+	defer p.PostMount(req)
+
 	var args []string
 	if p.mountPointAfterOptions {
 		args = append(volumeInfo.args, mountPoint)
@@ -195,8 +206,8 @@ func (p *MountedVolumeDriver) Unmount(req *volume.UnmountRequest) error {
 
 // Init sets the callback handler to the driver.  This needs to be called
 // before ServeUnix()
-func (p *MountedVolumeDriver) Init(callback MountedVolumeDriverCallback) {
-	p.MountedVolumeDriverCallback = callback
+func (p *MountedVolumeDriver) Init(callback DriverCallback) {
+	p.DriverCallback = callback
 }
 
 // ServeUnix makes the handler to listen for requests in a unix socket.

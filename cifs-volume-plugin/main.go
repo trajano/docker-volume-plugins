@@ -1,85 +1,73 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
+	"path"
 	"strings"
+	"syscall"
 
 	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/trajano/docker-volume-plugins/mounted-volume"
 )
 
 type cifsDriver struct {
-	servers []string
+	credentialPath string
 	mountedvolume.MountedVolumeDriver
 }
 
 func (p *cifsDriver) Validate(req *volume.CreateRequest) error {
-
-	log.Println("Validate", req)
-	_, serversDefinedInOpts := req.Options["servers"]
-	_, glusteroptsInOpts := req.Options["glusteropts"]
-
-	if len(p.servers) > 0 && (serversDefinedInOpts || glusteroptsInOpts) {
-		return fmt.Errorf("SERVERS is set, options are not allowed")
-	}
-	if serversDefinedInOpts && glusteroptsInOpts {
-		return fmt.Errorf("servers is set, glusteropts are not allowed")
-	}
-	if len(p.servers) == 0 && !serversDefinedInOpts && !glusteroptsInOpts {
-		return fmt.Errorf("One of SERVERS, driver_opts.servers or driver_opts.glusteropts must be specified")
-	}
 
 	return nil
 }
 
 func (p *cifsDriver) MountOptions(req *volume.CreateRequest) []string {
 
-	log.Println("MountOptions", req)
-	servers, serversDefinedInOpts := req.Options["servers"]
-	glusteropts, _ := req.Options["glusteropts"]
+	cifsopts, cifsoptsInOpts := req.Options["cifsopts"]
 
-	var args []string
-
-	if len(p.servers) > 0 {
-		for _, server := range p.servers {
-			args = append(args, "-s", server)
-		}
-		args = AppendVolumeOptionsByVolumeName(args, req.Name)
-	} else if serversDefinedInOpts {
-		for _, server := range strings.Split(servers, ",") {
-			args = append(args, "-s", server)
-		}
-		args = AppendVolumeOptionsByVolumeName(args, req.Name)
+	credentialsFile := path.Join(p.credentialPath, strings.Replace(req.Name, "/", "@", -1))
+	var cifsoptsArray []string
+	if cifsoptsInOpts {
+		cifsoptsArray = append(cifsoptsArray, strings.Split(cifsopts, ",")...)
+	}
+	unhideRoot()
+	defer hideRoot()
+	if _, err := os.Stat(credentialsFile); err == nil {
+		cifsoptsArray = append(cifsoptsArray, "credentials="+credentialsFile)
 	} else {
-		args = strings.Split(glusteropts, " ")
+		log.Println("The credential file expected %s was not found, no implicit credential data will be passed by the plugin", credentialsFile)
 	}
 
-	return args
+	return []string{"-t", "cifs", "-o", strings.Join(cifsoptsArray, ",")}
+
 }
 
-// AppendVolumeOptionsByVolumeName appends the command line arguments into the current argument list given the volume name
-func AppendVolumeOptionsByVolumeName(args []string, volumeName string) []string {
-	parts := strings.SplitN(volumeName, "/", 2)
-	ret := append(args, "--volfile-id="+parts[0])
-	if len(parts) == 2 {
-		ret = append(ret, "--subdir-mount=/"+parts[1])
-	}
-	return ret
+func (p *cifsDriver) PreMount(req *volume.MountRequest) error {
+	unhideRoot()
+	return nil
+}
+
+func (p *cifsDriver) PostMount(req *volume.MountRequest) {
+	hideRoot()
 }
 
 func buildDriver() *cifsDriver {
-	var servers []string
-	if os.Getenv("SERVERS") != "" {
-		servers = strings.Split(os.Getenv("SERVERS"), ",")
-	}
+	credentialPath := os.Getenv("CREDENTIAL_PATH")
 	d := &cifsDriver{
-		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("glusterfs", true, "gfs"),
-		servers:             servers,
+		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("mount", true, "cifs"),
+		credentialPath:      credentialPath,
 	}
 	d.Init(d)
+	hideRoot()
 	return d
+}
+
+func hideRoot() error {
+	return syscall.Mount("tmpfs", "/root", "tmpfs", syscall.MS_RDONLY|syscall.MS_NOEXEC|syscall.MS_NOSUID|syscall.MS_NODEV, "size=1m")
+}
+
+func unhideRoot() error {
+	return syscall.Unmount("/root", 0)
 }
 
 func main() {

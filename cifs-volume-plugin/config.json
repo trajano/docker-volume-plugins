@@ -4,11 +4,11 @@
     "entrypoint": ["/cifs-volume-plugin"],
     "env": [
         {
-            "name": "SERVERS",
+            "name": "CREDENTIAL_PATH",
             "settable": [
                 "value"
             ],
-            "value": ""
+            "value": "/root/credentials"
         }
     ],
 	"network": {

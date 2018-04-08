@@ -40,7 +40,7 @@ The `volumes.x.name` specifies the volume and optionally a subdirectory mount.  
 
 This uses the `driver_opts.servers` to define a comma separated list of servers.  The rules for specifying the volume is the same as the previous section.
 
-Example in docker-compose.yml:
+Example in docker-compose.yml assuming the alias was set as `glusterfs`:
 
     volumes:
       sample:
@@ -56,7 +56,7 @@ The `volumes.x.name` specifies the volume and optionally a subdirectory mount.  
 
 ### Specify the options
 
-This passes the `driver_opts.glusterfsopts` to the `glusterfs` command followed by the generated mount point.  This is the most flexible method and gives full range to the options of the glusterfs FUSE client.
+This passes the `driver_opts.glusterfsopts` to the `glusterfs` command followed by the generated mount point.  This is the most flexible method and gives full range to the options of the glusterfs FUSE client.  Example in docker-compose.yml assuming the alias was set as `glusterfs`:
 
     volumes:
       sample:
@@ -67,3 +67,11 @@ This passes the `driver_opts.glusterfsopts` to the `glusterfs` command followed 
 
 The value of `name` will not be used for mounting; the value of `driver_opts.glusterfsopts` is expected to have all the volume connection information.
 
+## Testing outside the swarm
+
+This is an example of mounting and testing a store outside the swarm.  It is assuming the server is called `store1` and the volume name is `trajano`.
+
+    docker plugin install trajano/glusterfs-volume-plugin --grant-all-permissions
+    docker plugin enable trajano/glusterfs-volume-plugin
+    docker volume create -d trajano/glusterfs-volume-plugin --opt servers=store1 trajano
+    docker run -it -v trajano:/mnt alpine

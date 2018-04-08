@@ -1,7 +1,9 @@
 {
     "description": "CIFS plugin for Docker",
-	"documentation": "https://github.com/trajano/docker-volume-plugins/",
-    "entrypoint": ["/cifs-volume-plugin"],
+    "documentation": "https://github.com/trajano/docker-volume-plugins/",
+    "entrypoint": [
+        "/cifs-volume-plugin"
+    ],
     "env": [
         {
             "name": "CREDENTIAL_PATH",
@@ -11,23 +13,31 @@
             "value": "/root/credentials"
         }
     ],
-	"network": {
+    "network": {
         "type": "host"
     },
-	"mounts": [
+    "mounts": [
         {
             "destination": "/root",
             "source": "/root",
             "type": "bind",
-            "options": [ "rbind", "readonly" ]
+            "options": [
+                "rbind",
+                "readonly"
+            ]
         }
     ],
     "propagatedMount": "/var/lib/docker-volumes",
-	"interface" : {
-        "types": ["docker.volumedriver/1.0"],
+    "interface": {
+        "types": [
+            "docker.volumedriver/1.0"
+        ],
         "socket": "cifs.sock"
-	},
-	"linux": {
-        "capabilities": ["CAP_SYS_ADMIN"]
-	}
+    },
+    "linux": {
+        "capabilities": [
+            "CAP_SYS_ADMIN",
+            "CAP_DAC_READ_SEARCH"
+        ]
+    }
 }

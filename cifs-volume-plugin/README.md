@@ -39,9 +39,12 @@ It is likely that a single share may have multiple subpaths.  Or there's a globa
 3. `/root/credentials/foohost
 4. `/root/credentials/default
 
+
 ## Usage
 
-This uses the `driver_opts.cifsopts` to define the list of options to pass to the mount command (a map couldn't be used as some options have no value and will limit future options from being added if I chose to add them.  The `credentials` should not be passed in and will be added automatically if the credentials file is found.  The `volumes.x.name` specifies the host and share path (do not add the `//` it will automatically be added).
+This uses the `driver_opts.cifsopts` to define the list of options to pass to the mount command (a map couldn't be used as some options have no value and will limit future options from being added if I chose to add them.   In addition, the plugin variable `DEFAULT_CIFSOPTS` can be used to set up the default value for `driver_opts.cifsopts` if it is not specified.  For the most part my SMB shares are on Windows and so my `DEFAULT_CIFSOPTS=vers=3.02,mfsymlinks,file_mode=0666,dir_mode=0777`
+
+The `credentials` should not be passed in and will be added automatically if the credentials file is found.  The `volumes.x.name` specifies the host and share path (do not add the `//` it will automatically be added).
 
 Example in docker-compose.yml assuming the alias was set as `cifs`:
 

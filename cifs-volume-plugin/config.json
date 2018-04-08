@@ -11,6 +11,13 @@
                 "value"
             ],
             "value": "/root/credentials"
+        },
+        {
+            "name": "DEFAULT_CIFSOPTS",
+            "settable": [
+                "value"
+            ],
+            "value": ""
         }
     ],
     "network": {

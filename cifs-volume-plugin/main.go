@@ -12,7 +12,8 @@ import (
 )
 
 type cifsDriver struct {
-	credentialPath string
+	credentialPath  string
+	defaultCifsopts string
 	mountedvolume.Driver
 }
 
@@ -28,6 +29,8 @@ func (p *cifsDriver) MountOptions(req *volume.CreateRequest) []string {
 	var cifsoptsArray []string
 	if cifsoptsInOpts {
 		cifsoptsArray = append(cifsoptsArray, strings.Split(cifsopts, ",")...)
+	} else {
+		cifsoptsArray = append(cifsoptsArray, strings.Split(p.defaultCifsopts, ",")...)
 	}
 	unhideRoot()
 	defer hideRoot()
@@ -53,9 +56,11 @@ func (p *cifsDriver) PostMount(req *volume.MountRequest) {
 
 func buildDriver() *cifsDriver {
 	credentialPath := os.Getenv("CREDENTIAL_PATH")
+	defaultCifsopts := os.Getenv("DEFAULT_CIFSOPTS")
 	d := &cifsDriver{
-		Driver:         *mountedvolume.NewDriver("mount", true, "cifs", "local"),
-		credentialPath: credentialPath,
+		Driver:          *mountedvolume.NewDriver("mount", true, "cifs", "local"),
+		credentialPath:  credentialPath,
+		defaultCifsopts: defaultCifsopts,
 	}
 	d.Init(d)
 	hideRoot()

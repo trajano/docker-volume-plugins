@@ -19,7 +19,7 @@
             "destination": "/root",
             "source": "/root",
             "type": "bind",
-            "options": [ "ro" ]
+            "options": [ "rbind" ]
         }
     ],
     "propagatedMount": "/var/lib/docker-volumes",

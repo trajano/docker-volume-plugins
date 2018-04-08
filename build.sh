@@ -15,7 +15,7 @@ build() {
         docker plugin create trajano/$1 build
     else
         docker plugin create trajano/$1:$TAG build
-        docker plugin push trajano/$1:$TAG build
+        docker plugin push trajano/$1:$TAG
     fi
 }
 build glusterfs-volume-plugin

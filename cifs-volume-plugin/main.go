@@ -63,11 +63,19 @@ func buildDriver() *cifsDriver {
 }
 
 func hideRoot() error {
-	return syscall.Mount("tmpfs", "/root", "tmpfs", syscall.MS_RDONLY|syscall.MS_NOEXEC|syscall.MS_NOSUID|syscall.MS_NODEV, "size=1m")
+	err := syscall.Mount("tmpfs", "/root", "tmpfs", syscall.MS_RDONLY|syscall.MS_NOEXEC|syscall.MS_NOSUID|syscall.MS_NODEV, "size=1m")
+	if err != nil {
+		log.Fatal("unable to hide /root")
+	}
+	return err
 }
 
 func unhideRoot() error {
-	return syscall.Unmount("/root", 0)
+	err := syscall.Unmount("/root", 0)
+	if err != nil {
+		log.Fatal("unable to hide /root")
+	}
+	return err
 }
 
 func main() {

@@ -7,7 +7,7 @@ build() {
     mkdir -p build/rootfs
     docker export "$id" | tar -x -C build/rootfs
     docker rm -vf "$id"
-    #docker rmi rootfsimage
+    docker rmi rootfsimage
     cp $1/config.json build
     docker plugin create trajano/$1 build
 }

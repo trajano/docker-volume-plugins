@@ -10,7 +10,7 @@ build() {
     docker rm -vf "$id"
     docker rmi rootfsimage
     cp $1/config.json build
-    if [ -z "$TAG"]
+    if [ -z "$TAG" ]
     then
         docker plugin create trajano/$1 build
     else

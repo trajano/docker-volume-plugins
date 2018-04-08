@@ -51,6 +51,7 @@ func (p *cifsDriver) PostMount(req *volume.MountRequest) {
 }
 
 func buildDriver() *cifsDriver {
+	log.Println("buildDriver")
 	credentialPath := os.Getenv("CREDENTIAL_PATH")
 	d := &cifsDriver{
 		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("mount", true, "cifs"),

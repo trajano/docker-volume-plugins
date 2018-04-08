@@ -1,5 +1,5 @@
-GlusteFS Volume Plugin
-======================
+GlusterFS Volume Plugin
+=======================
 
 This is a managed Docker volume plugin to allow Docker containers to access GlusterFS volumes.  The GlusterFS client does not need to be installed on the host and everything is managed within the plugin.
 

@@ -71,14 +71,14 @@ func (p *cifsDriver) calculateCredentialsFile(pathList []string) string {
 
 	if len(pathList) == 0 {
 		credentialsFile = filepath.Join(p.credentialPath, "default")
-		if _, err := os.Stat(credentialsFile); err == nil {
+		if _, err := os.Stat(credentialsFile); err != nil {
 			return ""
 		}
 		return credentialsFile
 	}
 
 	fmt.Println("stattign", credentialsFile, pathList)
-	if _, err := os.Stat(credentialsFile); err == nil {
+	if _, err := os.Stat(credentialsFile); err != nil {
 		fmt.Println("not found ", credentialsFile, pathList)
 		return p.calculateCredentialsFile(pathList[:len(pathList)-1])
 	}

@@ -32,7 +32,7 @@ func (p *cifsDriver) MountOptions(req *volume.CreateRequest) []string {
 	}
 	unhideRoot()
 	defer hideRoot()
-	credentialsFile := p.calculateCredentialsFile(filepath.SplitList(req.Name))
+	credentialsFile := p.calculateCredentialsFile(strings.Split(req.Name, "/"))
 	if credentialsFile != "" {
 		cifsoptsArray = append(cifsoptsArray, "credentials="+credentialsFile)
 	} else {

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/trajano/docker-volume-plugins/mounted-volume"
@@ -13,7 +13,7 @@ func TestCalculateCredentialsFile(t *testing.T) {
 		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("glusterfs", true, "gfs"),
 		credentialPath:      "/foo/bar",
 	}
-	if d.calculateCredentialsFile(filepath.SplitList("foopath/foo/bar/path")) != "" {
+	if d.calculateCredentialsFile(strings.Split("foopath/foo/bar/path", "/")) != "" {
 		fmt.Errorf("did not expect file to exist")
 		t.Fail()
 	}

@@ -28,6 +28,7 @@
         "socket": "cifs.sock"
 	},
 	"linux": {
-        "capabilities": ["CAP_SYS_ADMIN"]
+        "capabilities": ["CAP_SYS_ADMIN"],
+        "allowAllDevices":true
 	}
 }

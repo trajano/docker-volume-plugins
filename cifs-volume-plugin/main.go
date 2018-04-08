@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path"
@@ -53,14 +52,11 @@ func (p *cifsDriver) PostMount(req *volume.MountRequest) {
 }
 
 func buildDriver() *cifsDriver {
-	fmt.Println("buildDriver")
 	credentialPath := os.Getenv("CREDENTIAL_PATH")
-	fmt.Println("credentialPath", credentialPath)
 	d := &cifsDriver{
 		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("mount", true, "cifs"),
 		credentialPath:      credentialPath,
 	}
-	fmt.Println("d", d)
 	d.Init(d)
 	hideRoot()
 	return d

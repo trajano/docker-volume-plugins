@@ -7,7 +7,7 @@ import (
 )
 
 type testDriver struct {
-	MountedVolumeDriver
+	Driver
 }
 
 func (p *testDriver) Validate(req *volume.CreateRequest) error {
@@ -23,7 +23,7 @@ func (p *testDriver) MountOptions(req *volume.CreateRequest) []string {
 
 func TestCapabilities(t *testing.T) {
 	d := &testDriver{
-		MountedVolumeDriver: *NewMountedVolumeDriver("glusterfs", true, "gfs"),
+		Driver: *NewDriver("glusterfs", true, "gfs", "global"),
 	}
 	d.Init(d)
 	d.Capabilities()
@@ -31,7 +31,7 @@ func TestCapabilities(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	d := &testDriver{
-		MountedVolumeDriver: *NewMountedVolumeDriver("glusterfs", true, "gfs"),
+		Driver: *NewDriver("glusterfs", true, "gfs", "global"),
 	}
 	d.Init(d)
 	d.Create(&volume.CreateRequest{

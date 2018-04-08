@@ -38,25 +38,26 @@ type DriverCallback interface {
 	volume.Driver
 }
 
-// MountedVolumeDriver extends the volume.Driver by implementing template versions
+// Driver extends the volume.Driver by implementing template versions
 // of the methods.
-type MountedVolumeDriver struct {
+type Driver struct {
 	mountExecutable        string
 	mountPointAfterOptions bool
 	dockerSocketName       string
 	volumeMap              map[string]mountedVolumeInfo
 	m                      *sync.RWMutex
+	scope                  string
 	DriverCallback
 }
 
 // Capabilities indicate to the swarm manager that this supports global scope.
-func (p *MountedVolumeDriver) Capabilities() *volume.CapabilitiesResponse {
-	return &volume.CapabilitiesResponse{Capabilities: volume.Capability{Scope: "global"}}
+func (p *Driver) Capabilities() *volume.CapabilitiesResponse {
+	return &volume.CapabilitiesResponse{Capabilities: volume.Capability{Scope: p.scope}}
 }
 
 // Create attempts to create the volume, if it has been created already it will
 // return an error if it is already present.
-func (p *MountedVolumeDriver) Create(req *volume.CreateRequest) error {
+func (p *Driver) Create(req *volume.CreateRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
@@ -83,7 +84,7 @@ func (p *MountedVolumeDriver) Create(req *volume.CreateRequest) error {
 }
 
 // Get obtain information for specific single volume.
-func (p *MountedVolumeDriver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
+func (p *Driver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
 	p.m.RLock()
 	defer p.m.RUnlock()
 
@@ -101,7 +102,7 @@ func (p *MountedVolumeDriver) Get(req *volume.GetRequest) (*volume.GetResponse, 
 }
 
 // List obtain information for all  volumes registered.
-func (p *MountedVolumeDriver) List() (*volume.ListResponse, error) {
+func (p *Driver) List() (*volume.ListResponse, error) {
 	p.m.RLock()
 	defer p.m.RUnlock()
 	var vols []*volume.Volume
@@ -118,7 +119,7 @@ func (p *MountedVolumeDriver) List() (*volume.ListResponse, error) {
 }
 
 // Remove removes a specific volume.
-func (p *MountedVolumeDriver) Remove(req *volume.RemoveRequest) error {
+func (p *Driver) Remove(req *volume.RemoveRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
@@ -133,7 +134,7 @@ func (p *MountedVolumeDriver) Remove(req *volume.RemoveRequest) error {
 
 // Path Request the path to the volume with the given volume_name.
 // Mountpoint is blank until the Mount method is called.
-func (p *MountedVolumeDriver) Path(req *volume.PathRequest) (*volume.PathResponse, error) {
+func (p *Driver) Path(req *volume.PathRequest) (*volume.PathResponse, error) {
 	p.m.RLock()
 	defer p.m.RUnlock()
 
@@ -146,7 +147,7 @@ func (p *MountedVolumeDriver) Path(req *volume.PathRequest) (*volume.PathRespons
 }
 
 // Mount performs the mount operation.  This will invoke the mount executable.
-func (p *MountedVolumeDriver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) {
+func (p *Driver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) {
 	p.m.Lock()
 	defer p.m.Unlock()
 
@@ -185,7 +186,7 @@ func (p *MountedVolumeDriver) Mount(req *volume.MountRequest) (*volume.MountResp
 }
 
 // Unmount uses the system call Unmount to do the unmounting.
-func (p *MountedVolumeDriver) Unmount(req *volume.UnmountRequest) error {
+func (p *Driver) Unmount(req *volume.UnmountRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
@@ -208,7 +209,7 @@ func (p *MountedVolumeDriver) Unmount(req *volume.UnmountRequest) error {
 
 // Init sets the callback handler to the driver.  This needs to be called
 // before ServeUnix()
-func (p *MountedVolumeDriver) Init(callback DriverCallback) {
+func (p *Driver) Init(callback DriverCallback) {
 	p.DriverCallback = callback
 }
 
@@ -216,7 +217,7 @@ func (p *MountedVolumeDriver) Init(callback DriverCallback) {
 // It also creates the socket filebased on the driver in the right directory
 // for docker to read.  If the "-h" argument is passed in on start up it
 // will simply display the usage and terminate.
-func (p *MountedVolumeDriver) ServeUnix() {
+func (p *Driver) ServeUnix() {
 	helpPtr := flag.Bool("h", false, "Show help")
 	flag.Parse()
 	if *helpPtr {
@@ -230,13 +231,14 @@ func (p *MountedVolumeDriver) ServeUnix() {
 	}
 }
 
-// NewMountedVolumeDriver constructor for MountedVolumeDriver
-func NewMountedVolumeDriver(mountExecutable string, mountPointAfterOptions bool, dockerSocketName string) *MountedVolumeDriver {
-	d := &MountedVolumeDriver{
+// NewDriver constructor for Driver
+func NewDriver(mountExecutable string, mountPointAfterOptions bool, dockerSocketName string, scope string) *Driver {
+	d := &Driver{
 		mountExecutable:        mountExecutable,
 		mountPointAfterOptions: mountPointAfterOptions,
 		dockerSocketName:       dockerSocketName,
 		volumeMap:              make(map[string]mountedVolumeInfo),
+		scope:                  scope,
 		m:                      &sync.RWMutex{},
 	}
 	return d

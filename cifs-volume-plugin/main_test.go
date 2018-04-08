@@ -10,8 +10,8 @@ import (
 
 func TestCalculateCredentialsFile(t *testing.T) {
 	d := &cifsDriver{
-		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("glusterfs", true, "gfs"),
-		credentialPath:      "/foo/bar",
+		Driver:         *mountedvolume.NewDriver("glusterfs", true, "gfs", "local"),
+		credentialPath: "/foo/bar",
 	}
 	if d.calculateCredentialsFile(strings.Split("foopath/foo/bar/path", "/")) != "" {
 		fmt.Errorf("did not expect file to exist")
@@ -20,9 +20,10 @@ func TestCalculateCredentialsFile(t *testing.T) {
 }
 
 func TestCalculateCredentialsFile2(t *testing.T) {
+	//	tmpDir := ioutil
 	d := &cifsDriver{
-		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("glusterfs", true, "gfs"),
-		credentialPath:      "/foo/bar",
+		Driver:         *mountedvolume.NewDriver("glusterfs", true, "gfs", "local"),
+		credentialPath: "/foo/bar",
 	}
 	if d.calculateCredentialsFile(strings.Split("foopath/foo/bar/path", "/")) != "" {
 		fmt.Errorf("did not expect file to exist")

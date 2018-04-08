@@ -12,7 +12,7 @@ import (
 
 type gfsDriver struct {
 	servers []string
-	mountedvolume.MountedVolumeDriver
+	mountedvolume.Driver
 }
 
 func (p *gfsDriver) Validate(req *volume.CreateRequest) error {
@@ -82,8 +82,8 @@ func buildDriver() *gfsDriver {
 		servers = strings.Split(os.Getenv("SERVERS"), ",")
 	}
 	d := &gfsDriver{
-		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("glusterfs", true, "gfs"),
-		servers:             servers,
+		Driver:  *mountedvolume.NewDriver("glusterfs", true, "gfs"),
+		servers: servers,
 	}
 	d.Init(d)
 	return d

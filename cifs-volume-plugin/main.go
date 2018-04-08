@@ -13,7 +13,7 @@ import (
 
 type cifsDriver struct {
 	credentialPath string
-	mountedvolume.MountedVolumeDriver
+	mountedvolume.Driver
 }
 
 func (p *cifsDriver) Validate(req *volume.CreateRequest) error {
@@ -54,8 +54,8 @@ func (p *cifsDriver) PostMount(req *volume.MountRequest) {
 func buildDriver() *cifsDriver {
 	credentialPath := os.Getenv("CREDENTIAL_PATH")
 	d := &cifsDriver{
-		MountedVolumeDriver: *mountedvolume.NewMountedVolumeDriver("mount", true, "cifs"),
-		credentialPath:      credentialPath,
+		Driver:         *mountedvolume.NewDriver("mount", true, "cifs", "local"),
+		credentialPath: credentialPath,
 	}
 	d.Init(d)
 	hideRoot()

@@ -22,7 +22,7 @@ Unlike glusterfs, credentails are generally required to access a CIFS share unle
 
 To prevent excess quoting, the '@' sign is used as a path separator and will be translated to `/` when trying to process it.  For example the shared volume `foohost/path/subdir` should have a credential file named `foohost@path@subdir`.  It is expected that the file is readable only by root and that is left to the user.
 
-The credential file format is:
+The credential file must have LF line endings and the format is:
 
     username=value
     password=value

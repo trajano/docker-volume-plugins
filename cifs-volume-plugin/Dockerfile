@@ -7,4 +7,5 @@ RUN /usr/local/go/bin/go get github.com/trajano/docker-volume-plugins/cifs-volum
   yumdb set reason dep git tar && \
   yum autoremove -y && \
   yum clean all && \
-  rm -rf /var/cache/yum
+  rm -rf /var/cache/yum && \
+  find /var/log -type f -delete

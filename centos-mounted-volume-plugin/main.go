@@ -81,7 +81,10 @@ func buildDriver() *osMountedDriver {
 }
 
 func main() {
-	downloadPackages()
+	fmt.Println("PACKAGES=" + os.Getenv("PACKAGES"))
+	fmt.Println("MOUNT_TYPE=" + os.Getenv("MOUNT_TYPE"))
+	fmt.Println("MOUNT_OPTIONS=" + os.Getenv("MOUNT_OPTIONS"))
+	//	downloadPackages()
 	d := buildDriver()
 	d.ServeUnix()
 }

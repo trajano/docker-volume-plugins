@@ -1,12 +1,13 @@
 {
-    "description": "GlusterFS plugin for Docker",
+    "description": "CentOS mounted plugin for Docker",
     "documentation": "https://github.com/trajano/docker-volume-plugins/",
     "entrypoint": [
-        "/glusterfs-volume-plugin"
+        "/usr/sbin/init", "--verbose"
     ],
     "env": [
         {
             "name": "PACKAGES",
+            "description": "this is a *comma* separated list of packages that would be added.",
             "settable": [
                 "value"
             ],
@@ -14,6 +15,7 @@
         },
         {
             "name": "MOUNT_OPTIONS",
+            "description": "this corresponds to the `-o` parameter of the `mount` command.  It *will* be treated as a single string so it cannot inject the mount points or devices.",
             "settable": [
                 "value"
             ],
@@ -21,13 +23,15 @@
         },
         {
             "name": "MOUNT_TYPE",
+            "description": "the type of the mount, this corresponds to the `-t` parameter  of the `mount` command",
             "settable": [
                 "value"
             ],
             "value": ""
         },
         {
-            "name": "http_options",
+            "name": "http_proxy",
+            "description": "(note lower case) this sets the HTTP proxy",
             "settable": [
                 "value"
             ],
@@ -43,8 +47,19 @@
             "source": "/root",
             "type": "bind",
             "options": [
-                "rbind",
-                "readonly"
+                "bind",
+                "ro",
+                "private"
+            ]
+        },
+        {
+            "destination": "/sys/fs/cgroup",
+            "source": "/sys/fs/cgroup",
+            "type": "bind",
+            "options": [
+                "bind",
+                "ro",
+                "private"
             ]
         }
     ],

@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/trajano/docker-volume-plugins/mounted-volume"
@@ -32,8 +31,8 @@ func (p *cifsDriver) MountOptions(req *volume.CreateRequest) []string {
 	} else {
 		cifsoptsArray = append(cifsoptsArray, strings.Split(p.defaultCifsopts, ",")...)
 	}
-	unhideRoot()
-	defer hideRoot()
+	mountedvolume.UnhideRoot()
+	defer mountedvolume.HideRoot()
 	credentialsFile := p.calculateCredentialsFile(strings.Split(req.Name, "/"))
 	if credentialsFile != "" {
 		cifsoptsArray = append(cifsoptsArray, "credentials="+credentialsFile)
@@ -46,12 +45,12 @@ func (p *cifsDriver) MountOptions(req *volume.CreateRequest) []string {
 }
 
 func (p *cifsDriver) PreMount(req *volume.MountRequest) error {
-	unhideRoot()
+	mountedvolume.UnhideRoot()
 	return nil
 }
 
 func (p *cifsDriver) PostMount(req *volume.MountRequest) {
-	hideRoot()
+	mountedvolume.HideRoot()
 }
 
 func buildDriver() *cifsDriver {
@@ -63,7 +62,7 @@ func buildDriver() *cifsDriver {
 		defaultCifsopts: defaultCifsopts,
 	}
 	d.Init(d)
-	hideRoot()
+	mountedvolume.HideRoot()
 	return d
 }
 
@@ -85,23 +84,8 @@ func (p *cifsDriver) calculateCredentialsFile(pathList []string) string {
 	return credentialsFile
 }
 
-func hideRoot() error {
-	err := syscall.Mount("tmpfs", "/root", "tmpfs", syscall.MS_RDONLY|syscall.MS_NOEXEC|syscall.MS_NOSUID|syscall.MS_NODEV, "size=1m")
-	if err != nil {
-		log.Fatal("unable to hide /root")
-	}
-	return err
-}
-
-func unhideRoot() error {
-	err := syscall.Unmount("/root", 0)
-	if err != nil {
-		log.Fatal("unable to hide /root")
-	}
-	return err
-}
-
 func main() {
+	log.SetFlags(0)
 	d := buildDriver()
 	d.ServeUnix()
 }

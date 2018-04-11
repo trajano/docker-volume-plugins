@@ -29,8 +29,9 @@
             "source": "/root",
             "type": "bind",
             "options": [
-                "rbind",
-                "readonly"
+                "bind",
+                "ro",
+                "private"
             ]
         }
     ],

@@ -8,9 +8,10 @@ This is a managed Docker volume plugin to allow Docker containers to access any 
 - This is a managed plugin only, no legacy support.
 - This is *VERY OPEN* so please be careful when using this.  If there is a specialized driver use that one if possible.
 - This requires an *INTERNET* connection to download the additional packages.  However `http_proxy` environment variable can be set.
-- This slows down your start up as it will download packages on initialization.
-- This will mount the `/root` folder of the host and expose it to the plugin *as read only*.  The purpose of which is to allow it to access files that are meant to be read by the mount command for credentials.
+- This slows down your start up as it will download packages before being able to create any mounts.  The download starts off as another thread during initialization and the `/Mount` calls will wait till the download is finished.
+- This will mount the `/root` and `/sys/fs/cgroup` folder of the host and expose it to the plugin *as read only*.  `/root` is expected to contain files to be read by the `mount` command for credentials.  `/sys/fs/cgroup` is needed for systemd integration to work.
 - I had to choose one OS distro to start with, if there is a need for another distro just create an issue or PR.
+- There is no facility to run `systemctl` or any additional commands, just the `mount` command.  This would mean that NFS cannot be used with this plugin.
 - In order to properly support versions use `--alias` when installing the plugin.
 - **There is no robust error handling.  So garbage in -> garbage out**
 
@@ -48,11 +49,20 @@ Which yields the following command
 
     mount -t nfs -o hard,proto=tcp,nfsvers=4,intr server1:/share_name /generated_mount_point
 
-## Testing outside the swarm
+## Recipes
 
-This is an example of mounting and testing a store outside the swarm.  It is assuming the server is called `store1` and the volume name is `trajano`.
+### NFS mount
 
-    docker plugin install trajano/glusterfs-volume-plugin --grant-all-permissions
-    docker plugin enable trajano/glusterfs-volume-plugin
-    docker volume create -d trajano/glusterfs-volume-plugin --opt servers=store1 trajano
-    docker run -it -v trajano:/mnt alpine
+    docker plugin install \
+      trajano/centos-mounted-volume-plugin \
+      --grant-all-permissions --disable
+    docker plugin set trajano/centos-mounted-volume-plugin PACKAGES=nfs-utils
+    docker plugin set trajano/centos-mounted-volume-plugin MOUNT_TYPE=nfs
+    docker plugin set trajano/centos-mounted-volume-plugin MOUNT_OPTIONS=hard,proto=tcp,nfsvers=4,intr
+    docker plugin enable trajano/centos-mounted-volume-plugin
+    docker volume create -d trajano/centos-mounted-volume-plugin --opt device=192.168.1.1:/mnt/routerdrive/nfs nfsmountvolume
+    docker run -it -v nfsmountvolume:/mnt alpine
+
+## TODO
+
+* Allow for extra initialization commands

@@ -4,5 +4,6 @@ After=multi-user.target
 
 [Service]
 ExecStart=/centos-mounted-volume-plugin
+EnvironmentFile=/pluginenv
 StandardOutput=file:/proc/1/fd/1
 StandardError=file:/proc/1/fd/2

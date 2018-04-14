@@ -2,7 +2,9 @@
     "description": "CentOS mounted plugin for Docker",
     "documentation": "https://github.com/trajano/docker-volume-plugins/",
     "entrypoint": [
-        "/usr/sbin/init", "--verbose"
+        "/bin/sh",
+        "-e",
+        "/init.sh"
     ],
     "env": [
         {
@@ -45,16 +47,6 @@
         {
             "destination": "/root",
             "source": "/root",
-            "type": "bind",
-            "options": [
-                "bind",
-                "ro",
-                "private"
-            ]
-        },
-        {
-            "destination": "/sys/fs/cgroup",
-            "source": "/sys/fs/cgroup",
             "type": "bind",
             "options": [
                 "bind",

@@ -56,9 +56,10 @@ Which yields the following command
     docker plugin install \
       trajano/centos-mounted-volume-plugin \
       --grant-all-permissions --disable
-    docker plugin set trajano/centos-mounted-volume-plugin PACKAGES=nfs-utils
-    docker plugin set trajano/centos-mounted-volume-plugin MOUNT_TYPE=nfs
-    docker plugin set trajano/centos-mounted-volume-plugin MOUNT_OPTIONS=hard,proto=tcp,nfsvers=4,intr
+    docker plugin set trajano/centos-mounted-volume-plugin \
+      PACKAGES=nfs-utils \
+      MOUNT_TYPE=nfs \
+      MOUNT_OPTIONS=hard,proto=tcp,nfsvers=4,intr 
     docker plugin enable trajano/centos-mounted-volume-plugin
     docker volume create -d trajano/centos-mounted-volume-plugin --opt device=192.168.1.1:/mnt/routerdrive/nfs nfsmountvolume
     docker run -it -v nfsmountvolume:/mnt alpine

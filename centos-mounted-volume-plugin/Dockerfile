@@ -10,7 +10,7 @@ RUN go get github.com/trajano/docker-volume-plugins/centos-mounted-volume-plugin
   yum remove -q -q -y go git gcc && \
   yum autoremove -q -q -y && \
   yum clean all && \
-  rm -rf /var/cache/yum && \
+  rm -rf /var/cache/yum /etc/mtab && \
   find /var/log -type f -delete
 #ENV PACKAGES=nfs-utils
 #ENV MOUNT_TYPE=nfs

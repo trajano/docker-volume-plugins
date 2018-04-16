@@ -6,5 +6,5 @@ RUN go get github.com/trajano/docker-volume-plugins/glusterfs-volume-plugin && \
   yum remove -q -y go git gcc && \
   yum autoremove -q -y && \
   yum clean all && \
-  rm -rf /var/cache/yum /var/log/anaconda && \
+  rm -rf /var/cache/yum /var/log/anaconda /var/cache/yum /etc/mtab && \
   rm /var/log/README /var/log/dnf*.log /var/log/lastlog /var/log/tallylog /var/log/hawkey.log

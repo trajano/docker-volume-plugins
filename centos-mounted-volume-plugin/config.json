@@ -2,14 +2,20 @@
     "description": "CentOS mounted plugin for Docker",
     "documentation": "https://github.com/trajano/docker-volume-plugins/",
     "entrypoint": [
-        "/bin/sh",
-        "-e",
-        "/init.sh"
+        "/bin/sh","-e", "/init.sh"
     ],
     "env": [
         {
             "name": "PACKAGES",
             "description": "this is a *comma* separated list of packages that would be added.",
+            "settable": [
+                "value"
+            ],
+            "value": ""
+        },
+        {
+            "name": "POSTINSTALL",
+            "description": "executed after the package installation process.",
             "settable": [
                 "value"
             ],
@@ -53,6 +59,16 @@
                 "ro",
                 "private"
             ]
+        },
+        {
+            "destination": "/hostcgroup",
+            "source": "/sys/fs/cgroup",
+            "type": "bind",
+            "options": [
+                "bind",
+                "ro",
+                "private"
+            ]
         }
     ],
     "propagatedMount": "/var/lib/docker-volumes",
@@ -70,6 +86,11 @@
         "devices": [
             {
                 "path": "/dev/fuse"
+            }
+        ],
+        "namespaces": [
+            {
+                "type": "cgroup"
             }
         ]
     }

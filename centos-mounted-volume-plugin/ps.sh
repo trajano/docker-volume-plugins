@@ -1,7 +1,7 @@
-#!/bin/sh -e
+#!/bin/sh
 while true
 do
 ps aux
 ls -l /var/log
-sleep 2
+sleep 5
 done

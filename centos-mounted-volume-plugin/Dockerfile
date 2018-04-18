@@ -12,7 +12,7 @@ RUN go get github.com/trajano/docker-volume-plugins/centos-mounted-volume-plugin
   yum clean all && \
   rm -rf /var/cache/yum /etc/mtab && \
   find /var/log -type f -delete
-#ENV PACKAGES=nfs-utils
-#ENV MOUNT_TYPE=nfs
+ENV PACKAGES=nfs-utils
+ENV MOUNT_TYPE=nfs
 CMD [ "/init.sh" ]
 # git pull && ./build.sh &&   docker plugin set trajano/centos-mounted-volume-plugin       PACKAGES=nfs-utils       MOUNT_TYPE=nfs       MOUNT_OPTIONS=hard,proto=tcp,nfsvers=4,intr   &&  docker plugin enable trajano/centos-mounted-volume-plugin

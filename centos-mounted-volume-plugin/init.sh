@@ -6,6 +6,7 @@ echo http_proxy=${http_proxy} >> /pluginenv
 cat /pluginenv
 #ls -lR /sys/fs/cgroup
 #mount -t cgroup cgroup /sys/fs/cgroup
+mount --rbind /hostcgroup /sys/fs/cgroup
 mount | grep cgroup
 /ps.sh &
 exec /sbin/init

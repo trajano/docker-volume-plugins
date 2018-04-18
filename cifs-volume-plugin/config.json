@@ -25,6 +25,7 @@
     },
     "mounts": [
         {
+            "description": "Host /root folder which is expected to contain credential files",
             "destination": "/root",
             "source": "/root",
             "type": "bind",

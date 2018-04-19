@@ -1,14 +1,15 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
 	"sync"
-	"syscall"
 
+	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/trajano/docker-volume-plugins/mounted-volume"
 )
@@ -59,6 +60,12 @@ func downloadPackages() {
 		log.Fatalf("There was an error %s when downloading the packages %s", err, args)
 	}
 	log.Println("completed yum", args)
+
+	postInstallCmd := exec.Command("/bin/bash", "-c", os.Getenv("POSTINSTALL"))
+	if out, err := postInstallCmd.CombinedOutput(); err != nil {
+		log.Println(string(out))
+		log.Fatalf("There was an error %s when executing post install command  %s", err, postInstallCmd.Args)
+	}
 }
 
 func buildDriver() *osMountedDriver {
@@ -86,27 +93,26 @@ func main() {
 		log.Fatal("MOUNT_TYPE needs to be set")
 	}
 
+	helpPtr := flag.Bool("h", false, "Show help")
+	flag.Parse()
+	if *helpPtr {
+		flag.Usage()
+		return
+	}
+
 	downloadPackageWg.Add(1)
 	log.Println("PACKAGES=" + packages)
+	log.Println("POSTINSTALL=" + os.Getenv("POSTINSTALL"))
 	log.Println("MOUNT_TYPE=" + mountType)
 	log.Println("MOUNT_OPTIONS=" + mountOptions)
 	d := buildDriver()
 
-	if _, err := os.Stat("/hostcgroup"); err == nil {
-		log.Println("/hostcgroup was found remounting it to /sys/fs/cgroup")
-		if merr := syscall.Mount("/hostcgroup", "/sys/fs/cgroup", "", syscall.MS_BIND|syscall.MS_RDONLY|syscall.MS_REC, ""); merr != nil {
-			log.Panic(merr)
-		}
-	}
-
-	log.Println("Starting systemd")
-	initCmd := exec.Command("/sbin/init")
-	if err := initCmd.Start(); err != nil {
-		log.Panic(err)
-	}
-	defer initCmd.Wait()
-
 	log.Println("Serving UNIX socket")
-	d.ServeUnix()
 
+	h := volume.NewHandler(d)
+	l, err := sockets.NewUnixSocket("/dockerplugins/osmounted.sock", 0)
+	if err != nil {
+		log.Fatal(err)
+	}
+	h.Serve(l)
 }

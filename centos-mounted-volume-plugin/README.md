@@ -22,6 +22,7 @@ In order to not make this a free-for-all, only the `device` option is recognized
 The plugin supports the following settings:
 
 * `PACKAGES` this is a *comma* separated list of packages that would be added.
+* `POSTINSTALL` this will be executed after the packages have been installed
 * `MOUNT_OPTIONS` this corresponds to the `-o` parameter of the `mount` command.  It *will* be treated as a single string so it cannot inject the mount points or devices.
 * `MOUNT_TYPE` the type of the mount, this corresponed to the `-t` parameter  of the `mount` command
 * `http_options` (note lower case) this sets the HTTP options as per https://www.centos.org/docs/5/html/yum/sn-yum-proxy-server.html
@@ -58,12 +59,9 @@ Which yields the following command
       --grant-all-permissions --disable
     docker plugin set trajano/centos-mounted-volume-plugin \
       PACKAGES=nfs-utils \
+      POSTINSTALL="systemctl start rpcbind" \
       MOUNT_TYPE=nfs \
-      MOUNT_OPTIONS=hard,proto=tcp,nfsvers=4,intr 
+      MOUNT_OPTIONS=hard,proto=tcp,nfsvers=3,intr,nolock
     docker plugin enable trajano/centos-mounted-volume-plugin
     docker volume create -d trajano/centos-mounted-volume-plugin --opt device=192.168.1.1:/mnt/routerdrive/nfs nfsmountvolume
     docker run -it -v nfsmountvolume:/mnt alpine
-
-## TODO
-
-* Allow for extra initialization commands

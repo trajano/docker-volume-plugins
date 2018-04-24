@@ -52,7 +52,7 @@ func (p *nfsDriver) PostMount(req *volume.MountRequest) {
 
 func buildDriver() *nfsDriver {
 	d := &nfsDriver{
-		Driver:         *mountedvolume.NewDriver("mount", true, "nfs", "local"),
+		Driver:         *mountedvolume.NewDriver("mount", true, "nfs", "global"),
 		defaultOptions: os.Getenv("DEFAULT_NFSOPTS"),
 	}
 	d.Init(d)

@@ -61,16 +61,6 @@ func buildDriver() *nfsDriver {
 
 func main() {
 	log.SetFlags(0)
-	packages := os.Getenv("PACKAGES")
-	mountType := os.Getenv("MOUNT_TYPE")
-	mountOptions := os.Getenv("MOUNT_OPTIONS")
-
-	if packages == "" {
-		log.Fatal("PACKAGES needs to be set")
-	}
-	if mountType == "" {
-		log.Fatal("MOUNT_TYPE needs to be set")
-	}
 
 	helpPtr := flag.Bool("h", false, "Show help")
 	flag.Parse()
@@ -79,10 +69,6 @@ func main() {
 		return
 	}
 
-	log.Println("PACKAGES=" + packages)
-	log.Println("POSTINSTALL=" + os.Getenv("POSTINSTALL"))
-	log.Println("MOUNT_TYPE=" + mountType)
-	log.Println("MOUNT_OPTIONS=" + mountOptions)
 	d := buildDriver()
 
 	log.Println("Serving UNIX socket")

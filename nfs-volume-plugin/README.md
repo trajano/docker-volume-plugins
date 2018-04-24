@@ -43,8 +43,7 @@ Which yields the following command
 
 This is an example of mounting and testing a store outside the swarm.  It is assuming the share is called `noriko/s`.
 
-    docker plugin install trajano/cifs-volume-plugin --grant-all-permissions
-    docker plugin enable trajano/cifs-volume-plugin
-    docker volume create -d trajano/cifs-volume-plugin --opt cifsopts=vers=3.02,mfsymlinks,file_mode=0666,dir_mode=0777 noriko/s
-    docker run -it -v noriko/s:/mnt alpine
+    docker plugin install trajano/nfs-volume-plugin --grant-all-permissions
+    docker plugin enable trajano/nfs-volume-plugin
     docker volume create -d trajano/nfs-volume-plugin --opt device=192.168.1.1:/mnt/routerdrive/nfs --opt nfsopts=hard,proto=tcp,nfsvers=3,intr,nolock nfsmountvolume
+    docker run -it -v nfsmountvolume:/mnt alpine

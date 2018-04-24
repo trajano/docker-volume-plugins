@@ -1,0 +1,7 @@
+[Unit]
+Wants=multi-user.target
+After=multi-user.target
+
+[Service]
+ExecStart=/nfs-volume-plugin
+EnvironmentFile=/pluginenv

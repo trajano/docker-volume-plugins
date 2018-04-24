@@ -12,12 +12,12 @@ import (
 	"github.com/trajano/docker-volume-plugins/mounted-volume"
 )
 
-type osMountedDriver struct {
+type nfsDriver struct {
 	defaultOptions string
 	mountedvolume.Driver
 }
 
-func (p *osMountedDriver) Validate(req *volume.CreateRequest) error {
+func (p *nfsDriver) Validate(req *volume.CreateRequest) error {
 
 	_, deviceDefinedInOpts := req.Options["device"]
 
@@ -28,7 +28,7 @@ func (p *osMountedDriver) Validate(req *volume.CreateRequest) error {
 	return nil
 }
 
-func (p *osMountedDriver) MountOptions(req *volume.CreateRequest) []string {
+func (p *nfsDriver) MountOptions(req *volume.CreateRequest) []string {
 
 	nfsOptions, nfsoptsInOpts := req.Options["nfsopts"]
 
@@ -43,22 +43,19 @@ func (p *osMountedDriver) MountOptions(req *volume.CreateRequest) []string {
 
 }
 
-func (p *osMountedDriver) PreMount(req *volume.MountRequest) error {
+func (p *nfsDriver) PreMount(req *volume.MountRequest) error {
 	return nil
 }
 
-func (p *osMountedDriver) PostMount(req *volume.MountRequest) {
+func (p *nfsDriver) PostMount(req *volume.MountRequest) {
 }
 
-func buildDriver() *osMountedDriver {
-	go downloadPackages()
-	d := &osMountedDriver{
-		Driver:       *mountedvolume.NewDriver("mount", true, "osmounted", "local"),
-		mountType:    os.Getenv("MOUNT_TYPE"),
-		mountOptions: os.Getenv("MOUNT_OPTIONS"),
+func buildDriver() *nfsDriver {
+	d := &nfsDriver{
+		Driver:         *mountedvolume.NewDriver("mount", true, "nfs", "local"),
+		defaultOptions: os.Getenv("DEFAULT_NFSOPTS"),
 	}
 	d.Init(d)
-	mountedvolume.HideRoot()
 	return d
 }
 
@@ -82,7 +79,6 @@ func main() {
 		return
 	}
 
-	downloadPackageWg.Add(1)
 	log.Println("PACKAGES=" + packages)
 	log.Println("POSTINSTALL=" + os.Getenv("POSTINSTALL"))
 	log.Println("MOUNT_TYPE=" + mountType)

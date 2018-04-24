@@ -20,4 +20,5 @@ build() {
 }
 build glusterfs-volume-plugin
 build cifs-volume-plugin
+build nfs-volume-plugin
 build centos-mounted-volume-plugin

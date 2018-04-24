@@ -1,0 +1,44 @@
+{
+    "description": "NFS mounted plugin for Docker",
+    "documentation": "https://github.com/trajano/docker-volume-plugins/",
+    "entrypoint": [
+        "/bin/sh","-e", "/init.sh"
+    ],
+    "env": [
+        {
+            "name": "DEFAULT_NFSOPTS",
+            "description": "this corresponds to the default value `-o` parameter of the `mount` command.  It *will* be treated as a single string so it cannot inject the mount points or devices.",
+            "settable": [
+                "value"
+            ],
+            "value": ""
+        }
+    ],
+    "network": {
+        "type": "host"
+    },
+    "mounts": [
+        {
+            "destination": "/hostcgroup",
+            "source": "/sys/fs/cgroup",
+            "type": "bind",
+            "options": [
+                "bind",
+                "ro",
+                "private"
+            ]
+        }
+    ],
+    "propagatedMount": "/var/lib/docker-volumes",
+    "interface": {
+        "types": [
+            "docker.volumedriver/1.0"
+        ],
+        "socket": "nfs.sock"
+    },
+    "linux": {
+        "capabilities": [
+            "CAP_SYS_ADMIN"
+        ]
+    }
+}

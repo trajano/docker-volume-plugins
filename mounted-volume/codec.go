@@ -48,7 +48,7 @@ func (p *Driver) getVolumeInfo(tx *bolt.Tx, volumeName string) (*mountedVolumeIn
 		return nil, false, nil
 	}
 	info, err := gobDecode(v)
-	return info, false, err
+	return info, true, err
 }
 
 func (p *Driver) getVolumeMap(tx *bolt.Tx) (map[string]mountedVolumeInfo, error) {

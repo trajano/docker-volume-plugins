@@ -78,4 +78,18 @@ func TestDatabase(t *testing.T) {
 		t.Fail()
 	}
 
+	if err := d.volumedb.View(func(tx *bolt.Tx) error {
+		info, exists, err := d.getVolumeInfo(tx, "test")
+		if !exists {
+			t.Fail()
+		}
+		if info.MountPoint != "hello-again" {
+			t.Fail()
+		}
+		return err
+
+	}); err != nil {
+		t.Fail()
+	}
+
 }

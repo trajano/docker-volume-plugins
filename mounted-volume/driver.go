@@ -15,10 +15,10 @@ import (
 )
 
 type mountedVolumeInfo struct {
-	options    map[string]string
-	mountPoint string
-	args       []string
-	status     map[string]interface{}
+	Options    map[string]string
+	MountPoint string
+	Args       []string
+	Status     map[string]interface{}
 }
 
 // DriverCallback inteface specifies methods that need to be
@@ -83,10 +83,10 @@ func (p *Driver) Create(req *volume.CreateRequest) error {
 	status["args"] = args
 
 	if err := p.storeVolumeInfo(tx, req.Name, &mountedVolumeInfo{
-		options:    req.Options,
-		mountPoint: "",
-		args:       args,
-		status:     status,
+		Options:    req.Options,
+		MountPoint: "",
+		Args:       args,
+		Status:     status,
 	}); err != nil {
 		return err
 	}
@@ -119,8 +119,8 @@ func (p *Driver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
 	return &volume.GetResponse{
 		Volume: &volume.Volume{
 			Name:       req.Name,
-			Mountpoint: volumeInfo.mountPoint,
-			Status:     volumeInfo.status,
+			Mountpoint: volumeInfo.MountPoint,
+			Status:     volumeInfo.Status,
 		},
 	}, nil
 }
@@ -141,8 +141,8 @@ func (p *Driver) List() (*volume.ListResponse, error) {
 	for k, v := range volumeMap {
 		vols = append(vols, &volume.Volume{
 			Name:       k,
-			Mountpoint: v.mountPoint,
-			Status:     v.status,
+			Mountpoint: v.MountPoint,
+			Status:     v.Status,
 		})
 	}
 	return &volume.ListResponse{Volumes: vols}, nil
@@ -193,7 +193,7 @@ func (p *Driver) Path(req *volume.PathRequest) (*volume.PathResponse, error) {
 		return &volume.PathResponse{}, getVolErr
 	}
 
-	return &volume.PathResponse{Mountpoint: volumeInfo.mountPoint}, nil
+	return &volume.PathResponse{Mountpoint: volumeInfo.MountPoint}, nil
 }
 
 // Mount performs the mount operation.  This will invoke the mount executable.
@@ -227,10 +227,10 @@ func (p *Driver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) 
 
 	var args []string
 	if p.mountPointAfterOptions {
-		args = append(volumeInfo.args, mountPoint)
+		args = append(volumeInfo.Args, mountPoint)
 	} else {
 		args = append(args, mountPoint)
-		args = append(args, volumeInfo.args...)
+		args = append(args, volumeInfo.Args...)
 	}
 	log.Println(args)
 	cmd := exec.Command(p.mountExecutable, args...)
@@ -238,11 +238,11 @@ func (p *Driver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) 
 		fmt.Printf("Command output: %s\n", out)
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
 	}
-	volumeInfo.mountPoint = mountPoint
-	volumeInfo.status["mounted"] = true
+	volumeInfo.MountPoint = mountPoint
+	volumeInfo.Status["mounted"] = true
 	p.storeVolumeInfo(tx, req.Name, volumeInfo)
 	return &volume.MountResponse{
-		Mountpoint: volumeInfo.mountPoint,
+		Mountpoint: volumeInfo.MountPoint,
 	}, tx.Commit()
 }
 
@@ -269,8 +269,8 @@ func (p *Driver) Unmount(req *volume.UnmountRequest) error {
 	if err := syscall.Unmount(mountPoint, 0); err != nil {
 		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
 	}
-	volumeInfo.mountPoint = ""
-	volumeInfo.status["mounted"] = false
+	volumeInfo.MountPoint = ""
+	volumeInfo.Status["mounted"] = false
 
 	if err := os.Remove(mountPoint); err != nil {
 		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())

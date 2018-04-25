@@ -310,7 +310,7 @@ func (p *Driver) Close() {
 
 // NewDriver constructor for Driver
 func NewDriver(mountExecutable string, mountPointAfterOptions bool, dockerSocketName string, scope string) *Driver {
-	db, err := bolt.Open("volumes.db", 0600, nil)
+	db, err := bolt.Open(dockerSocketName+".db", 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

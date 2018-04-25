@@ -90,5 +90,6 @@ func buildDriver() *gfsDriver {
 func main() {
 	log.SetFlags(0)
 	d := buildDriver()
+	defer d.Close()
 	d.ServeUnix()
 }

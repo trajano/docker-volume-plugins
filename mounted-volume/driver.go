@@ -10,6 +10,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/boltdb/bolt"
 	"github.com/docker/go-plugins-helpers/volume"
 )
 
@@ -44,7 +45,7 @@ type Driver struct {
 	mountExecutable        string
 	mountPointAfterOptions bool
 	dockerSocketName       string
-	volumeMap              map[string]mountedVolumeInfo
+	volumedb               *bolt.DB
 	m                      *sync.RWMutex
 	scope                  string
 	DriverCallback
@@ -61,7 +62,13 @@ func (p *Driver) Create(req *volume.CreateRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
-	_, volumeExists := p.volumeMap[req.Name]
+	tx, err := p.volumedb.Begin(true)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, volumeExists, err := p.getVolumeInfo(tx, req.Name)
 	if volumeExists {
 		return fmt.Errorf("volume %s already exists", req.Name)
 	}
@@ -74,11 +81,19 @@ func (p *Driver) Create(req *volume.CreateRequest) error {
 	status := make(map[string]interface{})
 	status["mounted"] = false
 	status["args"] = args
-	p.volumeMap[req.Name] = mountedVolumeInfo{
+
+	if err := p.storeVolumeInfo(tx, req.Name, &mountedVolumeInfo{
 		options:    req.Options,
 		mountPoint: "",
 		args:       args,
 		status:     status,
+	}); err != nil {
+		return err
+	}
+
+	// Commit the transaction and check for error.
+	if err := tx.Commit(); err != nil {
+		return err
 	}
 	return nil
 }
@@ -88,9 +103,18 @@ func (p *Driver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
 	p.m.RLock()
 	defer p.m.RUnlock()
 
-	volumeInfo, volumeExists := p.volumeMap[req.Name]
+	tx, err := p.volumedb.Begin(false)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	volumeInfo, volumeExists, getVolErr := p.getVolumeInfo(tx, req.Name)
 	if !volumeExists {
 		return &volume.GetResponse{}, fmt.Errorf("volume %s does not exist", req.Name)
+	}
+	if getVolErr != nil {
+		return &volume.GetResponse{}, getVolErr
 	}
 	return &volume.GetResponse{
 		Volume: &volume.Volume{
@@ -101,14 +125,20 @@ func (p *Driver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
 	}, nil
 }
 
-// List obtain information for all  volumes registered.
+// List obtain information for all volumes registered.
 func (p *Driver) List() (*volume.ListResponse, error) {
 	p.m.RLock()
 	defer p.m.RUnlock()
+
+	tx, err := p.volumedb.Begin(false)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
 	var vols []*volume.Volume
-	for k, v := range p.volumeMap {
-		status := make(map[string]interface{})
-		status["mounted"] = 1
+	volumeMap, err := p.getVolumeMap(tx)
+	for k, v := range volumeMap {
 		vols = append(vols, &volume.Volume{
 			Name:       k,
 			Mountpoint: v.mountPoint,
@@ -123,13 +153,24 @@ func (p *Driver) Remove(req *volume.RemoveRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
-	_, volumeExists := p.volumeMap[req.Name]
+	tx, err := p.volumedb.Begin(true)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, volumeExists, getVolErr := p.getVolumeInfo(tx, req.Name)
 	if !volumeExists {
 		return fmt.Errorf("volume %s does not exist", req.Name)
 	}
+	if getVolErr != nil {
+		return getVolErr
+	}
 
-	delete(p.volumeMap, req.Name)
-	return nil
+	if err := p.removeVolumeInfo(tx, req.Name); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // Path Request the path to the volume with the given volume_name.
@@ -138,9 +179,18 @@ func (p *Driver) Path(req *volume.PathRequest) (*volume.PathResponse, error) {
 	p.m.RLock()
 	defer p.m.RUnlock()
 
-	volumeInfo, volumeExists := p.volumeMap[req.Name]
+	tx, err := p.volumedb.Begin(false)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	volumeInfo, volumeExists, getVolErr := p.getVolumeInfo(tx, req.Name)
 	if !volumeExists {
 		return &volume.PathResponse{}, fmt.Errorf("volume %s does not exist", req.Name)
+	}
+	if getVolErr != nil {
+		return &volume.PathResponse{}, getVolErr
 	}
 
 	return &volume.PathResponse{Mountpoint: volumeInfo.mountPoint}, nil
@@ -151,10 +201,20 @@ func (p *Driver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) 
 	p.m.Lock()
 	defer p.m.Unlock()
 
-	volumeInfo, volumeExists := p.volumeMap[req.Name]
+	tx, err := p.volumedb.Begin(true)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	volumeInfo, volumeExists, getVolErr := p.getVolumeInfo(tx, req.Name)
 	if !volumeExists {
 		return &volume.MountResponse{}, fmt.Errorf("volume %s does not exist", req.Name)
 	}
+	if getVolErr != nil {
+		return &volume.MountResponse{}, getVolErr
+	}
+
 	mountPoint := path.Join(volume.DefaultDockerRootDirectory, req.ID)
 	if err := os.MkdirAll(mountPoint, 0755); err != nil {
 		return &volume.MountResponse{}, fmt.Errorf("error mounting %s: %s", req.Name, err.Error())
@@ -180,9 +240,10 @@ func (p *Driver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) 
 	}
 	volumeInfo.mountPoint = mountPoint
 	volumeInfo.status["mounted"] = true
+	p.storeVolumeInfo(tx, req.Name, volumeInfo)
 	return &volume.MountResponse{
 		Mountpoint: volumeInfo.mountPoint,
-	}, nil
+	}, tx.Commit()
 }
 
 // Unmount uses the system call Unmount to do the unmounting.
@@ -190,10 +251,20 @@ func (p *Driver) Unmount(req *volume.UnmountRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
-	volumeInfo, volumeExists := p.volumeMap[req.Name]
+	tx, err := p.volumedb.Begin(true)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	volumeInfo, volumeExists, getVolErr := p.getVolumeInfo(tx, req.Name)
 	if !volumeExists {
 		return fmt.Errorf("volume %s does not exist", req.Name)
 	}
+	if getVolErr != nil {
+		return getVolErr
+	}
+
 	mountPoint := path.Join(volume.DefaultDockerRootDirectory, req.ID)
 	if err := syscall.Unmount(mountPoint, 0); err != nil {
 		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
@@ -204,7 +275,8 @@ func (p *Driver) Unmount(req *volume.UnmountRequest) error {
 	if err := os.Remove(mountPoint); err != nil {
 		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
 	}
-	return nil
+	p.storeVolumeInfo(tx, req.Name, volumeInfo)
+	return tx.Commit()
 }
 
 // Init sets the callback handler to the driver.  This needs to be called
@@ -231,13 +303,31 @@ func (p *Driver) ServeUnix() {
 	}
 }
 
+// Close clean up resources used by the driver
+func (p *Driver) Close() {
+	p.volumedb.Close()
+}
+
 // NewDriver constructor for Driver
 func NewDriver(mountExecutable string, mountPointAfterOptions bool, dockerSocketName string, scope string) *Driver {
+	db, err := bolt.Open("volumes.db", 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(volumeBucket))
+		if err != nil {
+			log.Fatalf("create bucket: %s", err)
+		}
+		return nil
+	})
+
 	d := &Driver{
 		mountExecutable:        mountExecutable,
 		mountPointAfterOptions: mountPointAfterOptions,
 		dockerSocketName:       dockerSocketName,
-		volumeMap:              make(map[string]mountedVolumeInfo),
+		volumedb:               db,
 		scope:                  scope,
 		m:                      &sync.RWMutex{},
 	}

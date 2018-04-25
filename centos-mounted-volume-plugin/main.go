@@ -71,7 +71,7 @@ func downloadPackages() {
 func buildDriver() *osMountedDriver {
 	go downloadPackages()
 	d := &osMountedDriver{
-		Driver:       *mountedvolume.NewDriver("mount", true, "osmounted", "local"),
+		Driver:       *mountedvolume.NewDriver("mount", true, "osmounted", "global"),
 		mountType:    os.Getenv("MOUNT_TYPE"),
 		mountOptions: os.Getenv("MOUNT_OPTIONS"),
 	}
@@ -106,6 +106,7 @@ func main() {
 	log.Println("MOUNT_TYPE=" + mountType)
 	log.Println("MOUNT_OPTIONS=" + mountOptions)
 	d := buildDriver()
+	defer d.Close()
 
 	log.Println("Serving UNIX socket")
 

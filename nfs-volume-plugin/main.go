@@ -70,6 +70,7 @@ func main() {
 	}
 
 	d := buildDriver()
+	defer d.Close()
 
 	log.Println("Serving UNIX socket")
 

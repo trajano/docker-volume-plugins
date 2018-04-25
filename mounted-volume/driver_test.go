@@ -33,6 +33,8 @@ func TestCreate(t *testing.T) {
 	d := &testDriver{
 		Driver: *NewDriver("glusterfs", true, "gfs", "global"),
 	}
+	defer d.Close()
+
 	d.Init(d)
 	d.Create(&volume.CreateRequest{
 		Name: "test",

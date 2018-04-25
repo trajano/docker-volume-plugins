@@ -1,6 +1,7 @@
 package mountedvolume
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -57,23 +58,31 @@ func TestDatabase(t *testing.T) {
 	status["args"] = "args"
 
 	if err := d.volumedb.Update(func(tx *bolt.Tx) error {
-		return d.storeVolumeInfo(tx, "test", &mountedVolumeInfo{
+		err := d.storeVolumeInfo(tx, "test", &mountedVolumeInfo{
 			Options:    make(map[string]string),
 			MountPoint: "hello",
 			Args:       []string{"test", "foo"},
 			Status:     status,
 		})
+		if err == nil {
+			tx.Commit()
+		}
+		return err
 	}); err != nil {
 		t.Fail()
 	}
 
 	if err := d.volumedb.Update(func(tx *bolt.Tx) error {
-		return d.storeVolumeInfo(tx, "test", &mountedVolumeInfo{
+		err := d.storeVolumeInfo(tx, "test", &mountedVolumeInfo{
 			Options:    make(map[string]string),
 			MountPoint: "hello-again",
 			Args:       []string{"test", "foo"},
 			Status:     status,
 		})
+		if err == nil {
+			tx.Commit()
+		}
+		return err
 	}); err != nil {
 		t.Fail()
 	}
@@ -81,6 +90,7 @@ func TestDatabase(t *testing.T) {
 	if err := d.volumedb.View(func(tx *bolt.Tx) error {
 		info, exists, err := d.getVolumeInfo(tx, "test")
 		if !exists {
+			fmt.Print("expected to exist")
 			t.Fail()
 		}
 		if info.MountPoint != "hello-again" {

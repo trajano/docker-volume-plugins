@@ -3,7 +3,6 @@ package mountedvolume
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
 
 	"github.com/boltdb/bolt"
 )
@@ -37,7 +36,7 @@ func (p *Driver) storeVolumeInfo(tx *bolt.Tx, volumeName string, info *mountedVo
 	bucket := tx.Bucket([]byte(volumeBucket))
 	b, err := info.gobEncode()
 	if err != nil {
-		return fmt.Errorf("Unable to encode info")
+		return err
 	}
 	return bucket.Put([]byte(volumeName), b)
 }

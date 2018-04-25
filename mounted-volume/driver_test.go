@@ -62,7 +62,7 @@ func TestDatabase(t *testing.T) {
 			Args:       []string{"test", "foo"},
 			Status:     status,
 		})
-		return tx.Commit()
+		return nil
 	}); err != nil {
 		t.Fail()
 	}
@@ -74,7 +74,7 @@ func TestDatabase(t *testing.T) {
 			Args:       []string{"test", "foo"},
 			Status:     status,
 		})
-		return tx.Commit()
+		return nil
 	}); err != nil {
 		t.Fail()
 	}

@@ -58,31 +58,23 @@ func TestDatabase(t *testing.T) {
 	status["args"] = "args"
 
 	if err := d.volumedb.Update(func(tx *bolt.Tx) error {
-		err := d.storeVolumeInfo(tx, "test", &mountedVolumeInfo{
+		return d.storeVolumeInfo(tx, "test", &mountedVolumeInfo{
 			Options:    make(map[string]string),
 			MountPoint: "hello",
 			Args:       []string{"test", "foo"},
 			Status:     status,
 		})
-		if err == nil {
-			tx.Commit()
-		}
-		return err
 	}); err != nil {
 		t.Fail()
 	}
 
 	if err := d.volumedb.Update(func(tx *bolt.Tx) error {
-		err := d.storeVolumeInfo(tx, "test", &mountedVolumeInfo{
+		return d.storeVolumeInfo(tx, "test", &mountedVolumeInfo{
 			Options:    make(map[string]string),
 			MountPoint: "hello-again",
 			Args:       []string{"test", "foo"},
 			Status:     status,
 		})
-		if err == nil {
-			tx.Commit()
-		}
-		return err
 	}); err != nil {
 		t.Fail()
 	}

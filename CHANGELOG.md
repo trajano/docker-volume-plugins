@@ -1,10 +1,11 @@
 Changelog
 =========
 
-## v1.3.0
+## 1.3.0
 
 * NFS volume plugin added
 * Fixed issue with volumes being lost on restart
+* Dropped the "v" prefix
 
 ## v1.2.0
 

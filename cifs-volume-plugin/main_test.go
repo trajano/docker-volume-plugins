@@ -13,6 +13,7 @@ func TestCalculateCredentialsFile(t *testing.T) {
 		Driver:         *mountedvolume.NewDriver("glusterfs", true, "gfs", "local"),
 		credentialPath: "/foo/bar",
 	}
+	defer d.Close()
 	if d.calculateCredentialsFile(strings.Split("foopath/foo/bar/path", "/")) != "" {
 		fmt.Errorf("did not expect file to exist")
 		t.Fail()
@@ -25,6 +26,7 @@ func TestCalculateCredentialsFile2(t *testing.T) {
 		Driver:         *mountedvolume.NewDriver("glusterfs", true, "gfs", "local"),
 		credentialPath: "/foo/bar",
 	}
+	defer d.Close()
 	if d.calculateCredentialsFile(strings.Split("foopath/foo/bar/path", "/")) != "" {
 		fmt.Errorf("did not expect file to exist")
 		t.Fail()

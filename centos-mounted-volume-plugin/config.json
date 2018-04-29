@@ -55,9 +55,8 @@
             "source": "/root",
             "type": "bind",
             "options": [
-                "bind",
-                "ro",
-                "private"
+                "rbind",
+                "ro"
             ]
         },
         {

@@ -80,7 +80,7 @@ func buildDriver() *gfsDriver {
 		servers = strings.Split(os.Getenv("SERVERS"), ",")
 	}
 	d := &gfsDriver{
-		Driver:  *mountedvolume.NewDriver("glusterfs", true, "gfs", "global"),
+		Driver:  *mountedvolume.NewDriver("glusterfs", true, "gfs", "local"),
 		servers: servers,
 	}
 	d.Init(d)

@@ -57,7 +57,7 @@ func buildDriver() *cifsDriver {
 	credentialPath := os.Getenv("CREDENTIAL_PATH")
 	defaultCifsopts := os.Getenv("DEFAULT_CIFSOPTS")
 	d := &cifsDriver{
-		Driver:          *mountedvolume.NewDriver("mount", true, "cifs", "global"),
+		Driver:          *mountedvolume.NewDriver("mount", true, "cifs", "local"),
 		credentialPath:  credentialPath,
 		defaultCifsopts: defaultCifsopts,
 	}

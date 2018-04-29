@@ -71,7 +71,7 @@ func downloadPackages() {
 func buildDriver() *osMountedDriver {
 	go downloadPackages()
 	d := &osMountedDriver{
-		Driver:       *mountedvolume.NewDriver("mount", true, "osmounted", "global"),
+		Driver:       *mountedvolume.NewDriver("mount", true, "osmounted", "local"),
 		mountType:    os.Getenv("MOUNT_TYPE"),
 		mountOptions: os.Getenv("MOUNT_OPTIONS"),
 	}

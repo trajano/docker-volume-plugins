@@ -26,7 +26,7 @@ func (p *testDriver) MountOptions(req *volume.CreateRequest) []string {
 
 func TestCapabilities(t *testing.T) {
 	d := &testDriver{
-		Driver: *NewDriver("glusterfs", true, "gfs1", "global"),
+		Driver: *NewDriver("glusterfs", true, "gfs1", "local"),
 	}
 	defer d.Close()
 	d.Init(d)
@@ -35,7 +35,7 @@ func TestCapabilities(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	d := &testDriver{
-		Driver: *NewDriver("glusterfs", true, "gfs2", "global"),
+		Driver: *NewDriver("glusterfs", true, "gfs2", "local"),
 	}
 	defer d.Close()
 
@@ -48,7 +48,7 @@ func TestCreate(t *testing.T) {
 func TestDatabase(t *testing.T) {
 
 	d := &testDriver{
-		Driver: *NewDriver("glusterfs", true, "gfs3", "global"),
+		Driver: *NewDriver("glusterfs", true, "gfs3", "local"),
 	}
 	defer d.Close()
 	defer os.Remove("volumes.db")

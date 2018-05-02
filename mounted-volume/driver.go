@@ -246,7 +246,9 @@ func (p *Driver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) 
 	}, tx.Commit()
 }
 
-// Unmount uses the system call Unmount to do the unmounting.
+// Unmount uses the system call Unmount to do the unmounting.  If the umount
+// call comes with EINVAL then this will log the error but will not fail the
+// operation.
 func (p *Driver) Unmount(req *volume.UnmountRequest) error {
 	p.m.Lock()
 	defer p.m.Unlock()
@@ -267,7 +269,12 @@ func (p *Driver) Unmount(req *volume.UnmountRequest) error {
 
 	mountPoint := path.Join(volume.DefaultDockerRootDirectory, req.ID)
 	if err := syscall.Unmount(mountPoint, 0); err != nil {
-		return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
+		errno := err.(syscall.Errno)
+		if errno == syscall.EINVAL {
+			log.Printf("error unmounting invalid mount %s: %s", req.Name, err.Error())
+		} else {
+			return fmt.Errorf("error unmounting %s: %s", req.Name, err.Error())
+		}
 	}
 	volumeInfo.MountPoint = ""
 	volumeInfo.Status["mounted"] = false

@@ -41,7 +41,7 @@ Which yields the following command
 
 ## Testing outside the swarm
 
-This is an example of mounting and testing a store outside the swarm.  It is assuming the share is called `noriko/s`.
+This is an example of mounting and testing a store outside the swarm.  It is assuming the share is called `192.168.1.1:/mnt/routerdrive/nfs`.
 
     docker plugin install trajano/nfs-volume-plugin --grant-all-permissions
     docker plugin enable trajano/nfs-volume-plugin

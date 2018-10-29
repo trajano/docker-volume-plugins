@@ -5,6 +5,7 @@ This is a managed Docker volume plugin to allow Docker containers to access Glus
 
 ### Caveats:
 
+- Requires Docker 18.03-1 at minimum.
 - This is a managed plugin only, no legacy support.
 - In order to properly support versions use `--alias` when installing the plugin.
 - This only supports one glusterfs cluster per instance use `--alias` to define separate instances

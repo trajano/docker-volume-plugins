@@ -1,6 +1,8 @@
 FROM centos:7
-RUN yum install -q -y centos-release-gluster312 && \
-  yum install -q -y go git glusterfs glusterfs-fuse attr
+RUN yum install -q -y centos-release-gluster41.noarch && \
+  yum install -q -y git glusterfs glusterfs-fuse attr
+RUN curl -ssL https://dl.google.com/go/go1.11.4.linux-amd64.tar.gz | tar zxf -
+RUN mv go/* /usr/local
 RUN go get github.com/trajano/docker-volume-plugins/glusterfs-volume-plugin && \
   mv $HOME/go/bin/glusterfs-volume-plugin / && \
   rm -rf $HOME/go && \

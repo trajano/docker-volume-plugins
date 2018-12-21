@@ -1,7 +1,7 @@
 #!/bin/sh -e
 TAG=$1
 build() {
-    docker plugin rm -f trajano/$1 || true
+    docker plugin rm -f trajano/$1:$TAG || true
     docker rmi -f rootfsimage || true
     docker build -t rootfsimage $1
     id=$(docker create rootfsimage -h) # id was cd851ce43a403 when the image was created

@@ -57,13 +57,13 @@ The `volumes.x.name` specifies the volume and optionally a subdirectory mount.  
 
 ### Specify the options
 
-This passes the `driver_opts.glusterfsopts` to the `glusterfs` command followed by the generated mount point.  This is the most flexible method and gives full range to the options of the glusterfs FUSE client.  Example in docker-compose.yml assuming the alias was set as `glusterfs`:
+This passes the `driver_opts.glusteropts` to the `glusterfs` command followed by the generated mount point.  This is the most flexible method and gives full range to the options of the glusterfs FUSE client.  Example in docker-compose.yml assuming the alias was set as `glusterfs`:
 
     volumes:
       sample:
         driver: glusterfs
         driver_opts:
-          glusterfsopts: "--volfile-server=SERVER --volfile-id=abc --subdir-mount=sub"
+          glusteropts: "--volfile-server=SERVER --volfile-id=abc --subdir-mount=sub"
         name: "whatever"
 
 The value of `name` will not be used for mounting; the value of `driver_opts.glusterfsopts` is expected to have all the volume connection information.

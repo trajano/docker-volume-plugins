@@ -8,4 +8,5 @@ deploy:
   on:
     tags: true
   script:
-  - sudo ./build.sh $TRAVIS_TAG
+    - echo "$DOCKER_PASSWORD" | docker login -u "trajano" --password-stdin
+    - sudo ./build.sh $TRAVIS_TAG

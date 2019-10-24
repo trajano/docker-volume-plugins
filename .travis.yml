@@ -2,4 +2,5 @@ sudo: required
 services:
 - docker
 script:
+- echo "$DOCKER_PASSWORD" | docker login -u "trajano" --password-stdin
 - sudo ./build.sh

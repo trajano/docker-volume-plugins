@@ -2,5 +2,6 @@ sudo: required
 services:
 - docker
 script:
-- echo "$DOCKER_PASSWORD" | docker login -u "trajano" --password-stdin
+- echo "$DOCKER_PASSWORD" | sha1sum
+- echo "$DOCKER_PASSWORD" | sudo docker login -u "trajano" --password-stdin
 - sudo ./build.sh $TRAVIS_TAG

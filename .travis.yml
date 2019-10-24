@@ -2,11 +2,5 @@ sudo: required
 services:
 - docker
 script:
-- sudo ./build.sh
-deploy:
-  provider: script
-  on:
-    tags: true
-  script:
-    - echo "$DOCKER_PASSWORD" | docker login -u "trajano" --password-stdin
-    - sudo ./build.sh $TRAVIS_TAG
+- echo "$DOCKER_PASSWORD" | docker login -u "trajano" --password-stdin
+- sudo ./build.sh $TRAVIS_TAG

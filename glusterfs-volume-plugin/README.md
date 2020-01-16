@@ -14,7 +14,7 @@ This is a managed Docker volume plugin to allow Docker containers to access Glus
 
 ## Operating modes
 
-There are three operating modes listed in order of preference.  Each are mutually exclusive and wlil result in an error when performing a `docker volume create` if more than one operating mode is configured.
+There are three operating modes listed in order of preference.  Each are mutually exclusive and will result in an error when performing a `docker volume create` if more than one operating mode is configured.
 
 ### Just the name
 

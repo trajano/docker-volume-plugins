@@ -8,7 +8,8 @@ RUN yum install -y oracle-gluster-release-el7 && \
     yum install -y glusterfs glusterfs-fuse attr && \
     yum clean all && \
     rm -rf /var/cache/yum /var/log/anaconda /var/cache/yum /etc/mtab && \
-    rm /var/log/lastlog /var/log/tallylog
+    rm /var/log/lastlog /var/log/tallylog && \
+    mkdir /var/lib/glusterd
 
 FROM base as dev
 

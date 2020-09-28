@@ -13,6 +13,13 @@
                 "value"
             ],
             "value": ""
+        },
+        {
+            "name": "SECURE_MANAGEMENT",
+            "settable": [
+                "value"
+            ],
+            "value": ""
         }
     ],
     "network": {
@@ -34,5 +41,15 @@
                 "path": "/dev/fuse"
             }
         ]
-    }
+    },
+    "mounts": [
+        {
+            "name": "ssl",
+            "source": "/etc/ssl",
+            "description": "",
+            "destination": "/etc/ssl",
+            "type": "bind",
+            "options": ["readonly", "shared", "rbind"]
+        }
+    ]
 }

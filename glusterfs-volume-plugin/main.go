@@ -83,6 +83,15 @@ func buildDriver() *gfsDriver {
 		Driver:  *mountedvolume.NewDriver("glusterfs", true, "gfs", "local"),
 		servers: servers,
 	}
+
+	if os.Getenv("SECURE_MANAGEMENT") != "" {
+		file, err := os.Create("/var/lib/glusterd/secure-access")
+		if err != nil {
+			log.Fatal("Could not create secure-access file: "+err.Error())
+		}
+		defer file.Close()
+	}
+
 	d.Init(d)
 	return d
 }

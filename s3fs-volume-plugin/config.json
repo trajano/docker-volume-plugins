@@ -4,7 +4,7 @@
     "entrypoint": [
         "/tini",
         "--",
-        "/glusterfs-volume-plugin"
+        "/s3fs-volume-plugin"
     ],
     "env": [
         {

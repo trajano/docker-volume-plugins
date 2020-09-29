@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/docker/go-plugins-helpers/volume"
-	"github.com/trajano/docker-volume-plugins/mounted-volume"
+	mountedvolume "github.com/trajano/docker-volume-plugins/mounted-volume"
 )
 
 type s3fsDriver struct {
@@ -52,10 +52,10 @@ func AppendBucketOptionsByVolumeName(args []string, volumeName string) []string 
 }
 
 func buildDriver() *s3fsDriver {
-	defaultopts := os.Getenv("DEFAULT_S3FSOPTS")
+	defaultsopts := os.Getenv("DEFAULT_S3FSOPTS")
 	d := &s3fsDriver{
 		Driver:          *mountedvolume.NewDriver("s3fs", false, "s3fs", "local"),
-		defaultS3fsopts: defaultopts,
+		defaultS3fsopts: defaultsopts,
 	}
 	d.Init(d)
 	return d

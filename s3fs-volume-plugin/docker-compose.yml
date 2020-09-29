@@ -1,0 +1,16 @@
+version: '3.7'
+
+volumes:
+    # docker plugin set trajano/s3fs-volume-plugin:latest AWSACCESSKEYID=key
+    # docker plugin set trajano/s3fs-volume-plugin:latest AWSSECRETACCESSKEY="secret"
+    # docker plugin set trajano/s3fs-volume-plugin:latest DEFAULT_S3FSOPTS="nomultipart,use_path_request_style,url=https://[tenant].compat.objectstorage.[region].oraclecloud.com/"
+    mybucket:
+      driver: trajano/s3fs-volume-plugin:latest
+      name: "docker-shared-bucket"
+
+services:
+    myapp:
+        image: alpine
+        command: sleep 1d
+        volumes:
+            - mybucket:/mnt

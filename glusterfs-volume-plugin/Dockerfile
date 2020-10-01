@@ -5,11 +5,14 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 
 RUN yum install -y oracle-gluster-release-el7 && \
-    yum install -y glusterfs glusterfs-fuse attr && \
+    yum install -y glusterfs glusterfs-fuse attr rsyslog && \
     yum clean all && \
     rm -rf /var/cache/yum /var/log/anaconda /var/cache/yum /etc/mtab && \
     rm /var/log/lastlog /var/log/tallylog && \
-    mkdir /var/lib/glusterd
+    mkdir -p /var/lib/glusterd /etc/glusterfs && \
+    touch /etc/glusterfs/logger.conf
+
+COPY glusterfs-volume-plugin/rsyslog.conf /etc/rsyslog.conf
 
 FROM base as dev
 

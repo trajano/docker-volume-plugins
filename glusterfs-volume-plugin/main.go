@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/docker/go-plugins-helpers/volume"
@@ -54,6 +55,8 @@ func (p *gfsDriver) MountOptions(req *volume.CreateRequest) []string {
 		args = strings.Split(glusteropts, " ")
 	}
 
+	args = append(args, "--logger=syslog")
+
 	return args
 }
 
@@ -96,8 +99,13 @@ func buildDriver() *gfsDriver {
 	return d
 }
 
+func spawnSyslog() {
+	cmd := exec.Command("rsyslogd", "-n")
+	cmd.Start()
+}
+
 func main() {
-	log.SetFlags(0)
+	spawnSyslog()
 	d := buildDriver()
 	defer d.Close()
 	d.ServeUnix()

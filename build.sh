@@ -12,7 +12,7 @@ TAG=$1
 build() {
     docker plugin rm -f trajano/$1 || true
     docker rmi -f rootfsimage || true
-    docker build -t rootfsimage $1
+    docker build -t rootfsimage -f $1/Dockerfile .
     id=$(docker create rootfsimage true) # id was cd851ce43a403 when the image was created
     rm -rf build/rootfs
     mkdir -p build/rootfs

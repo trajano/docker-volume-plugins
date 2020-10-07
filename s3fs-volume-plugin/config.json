@@ -1,14 +1,28 @@
 {
-    "description": "GlusterFS plugin for Docker",
+    "description": "S3FS plugin for Docker",
     "documentation": "https://github.com/trajano/docker-volume-plugins/",
     "entrypoint": [
         "/tini",
         "--",
-        "/glusterfs-volume-plugin"
+        "/s3fs-volume-plugin"
     ],
     "env": [
         {
-            "name": "SERVERS",
+            "name": "AWSACCESSKEYID",
+            "settable": [
+                "value"
+            ],
+            "value": ""
+        },
+        {
+            "name": "AWSSECRETACCESSKEY",
+            "settable": [
+                "value"
+            ],
+            "value": ""
+        },
+        {
+            "name": "DEFAULT_S3FSOPTS",
             "settable": [
                 "value"
             ],
@@ -23,7 +37,7 @@
         "types": [
             "docker.volumedriver/1.0"
         ],
-        "socket": "gfs.sock"
+        "socket": "s3fs.sock"
     },
     "linux": {
         "capabilities": [

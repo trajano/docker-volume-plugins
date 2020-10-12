@@ -1,6 +1,8 @@
 S3Fs Volume Plugin
 =======================
 
+**This project is forked at https://github.com/marcelo-ochoa/docker-volume-plugins please submit PR or bugs there.**
+
 This is a managed Docker volume plugin to allow Docker containers to access S3Fs volumes.  The S3Fs client does not need to be installed on the host and everything is managed within the plugin.
 
 ### Caveats:
